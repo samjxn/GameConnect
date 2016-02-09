@@ -6,6 +6,5 @@ class GreetingComponent extends FluxComponent<HelloWorldActions, GreetingDisplay
 
   redrawOn() => [store];
 
-
   render() => div({'className':'greeting'}, store.greeting);
 }

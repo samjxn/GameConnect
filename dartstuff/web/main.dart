@@ -6,5 +6,5 @@ import 'package:hello_world/hello_world.dart';
 main() {
   reactClient.setClientConfiguration();
 
-  render(helloWorldComponent({}), querySelector('#greeting'));
+  render(helloWorldComponent({}), querySelector('#content'));
 }

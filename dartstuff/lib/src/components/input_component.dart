@@ -14,7 +14,10 @@ class InputComponent extends Component {
   }
 
   render () {
-    var user_input = div({'className': 'user-input-form', 'onChange': onInputChange}, input({"ref":"input"}));
+    var user_input = div(
+        {'className': 'user-input-form',
+          'onChange': onInputChange
+        }, input({"ref":"input"}));
     return user_input;
   }
 }
