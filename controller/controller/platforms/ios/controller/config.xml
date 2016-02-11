@@ -30,12 +30,14 @@
     </feature>
     <allow-intent href="itms:*" />
     <allow-intent href="itms-apps:*" />
-    <name>HelloCordova</name>
+    <icon density="mdpi" height="57" platform="ios" src="res/ios/icon.png" width="57" />
+    <splash density="port-mdpi" src="res/ios/icon.png" />
+    <name>controller</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        A game controller for iOS and Android mobile phones that pairs with a desktop web application.
     </description>
-    <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+    <author email="rsgallus@iastate.edu" href="http://cordova.io">
+        Ryan Gallus
     </author>
     <content src="index.html" />
     <access origin="*" />
