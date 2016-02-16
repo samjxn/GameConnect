@@ -3,31 +3,75 @@ var app = {
     initialize: function() {
         this.bindEvents();
     },
+
     // Bind Event Listeners
-    //
-    // Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
+
     // deviceready Event Handler
-    //
-    // The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
+      app.renderHomeView();
+
+      document.getElementById("debug").addEventListener("click", renderDebugView());
+
+      // Override default HTML alert with native dialog
+      if (navigator.notification) {
+        window.alert = function (message) {
+          navigator.notification.alert(
+            message,    // message
+            null,       // callback
+            "Workshop", // title
+            'OK'        // buttonName
+          );
+        };
+      }
     },
+
     // Update DOM on a Received Event
     receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
+      var parentElement = document.getElementById(id);
+      var listeningElement = parentElement.querySelector('.listening');
+      var receivedElement = parentElement.querySelector('.received');
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+      listeningElement.setAttribute('style', 'display:none;');
+      receivedElement.setAttribute('style', 'display:block;');
 
-        console.log('Received Event: ' + id);
+      console.log('Received Event: ' + id);
+    },
+
+    // Render the home view
+    renderHomeView: function() {
+      var html =
+        "<div class='app'>" +
+          "<h1>Pair With Computer</h1>" +
+          "<form id='pairing' onSubmit='return pairRequest()'>" +
+            "<input type='text' name='pairing_code' value='Enter the Code on Your Screen'><br>" +
+            "<input type='submit' value='Pair' class='blink'>" +
+          "</form>" +
+          "<button type='button' class='button' id='debug'>Debug Mode</button>" +
+        "</div>";
+      document.body.innerHTML = html;
+    },
+
+    // Render the debug view
+    renderDebugView: function() {
+      var html =
+        "<div class='app'>" +
+          "<h1>Debug</h1><br><br>" +
+          "<form id='testing' action='demo_form.asp'>" +
+            "<input type='submit' value='Test Event'>" +
+          "</form>" +
+        "</div>";
+      document.body.innerHTML = html;
+    },
+
+    // Pairing
+    pairRequest: function() {
+      // send data to server
+      // handle function submit
     }
+
 };
 
 app.initialize();
