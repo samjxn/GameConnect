@@ -13,11 +13,16 @@ class InputComponent extends Component {
     actions.updateDisplayText.call(e.target.value);
   }
 
+  void onButtonClick(SyntheticMouseEvent e){
+    actions.connectionButtonPressed.call();
+  }
+
   render () {
-    var user_input = div(
-        {'className': 'user-input-form',
-          'onChange': onInputChange
-        }, input({"ref":"input"}));
+    var user_input = div({'className':'user-input-form-wrapper'},
+        [
+          input({'className': 'user-input-form', 'onChange': onInputChange}),
+          button({'className': 'button-open-websocket', 'onClick': onButtonClick}, "THIS IS A BUTTON THAT DOES THINGS WHEN ITS PRESSED AND IT'S REALLY LONG BECAUSE THIS IS A BIG LABEL")
+        ]);
     return user_input;
   }
 }

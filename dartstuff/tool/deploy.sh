@@ -4,8 +4,14 @@ SERVER=proj-309-16.cs.iastate.edu
 WEB_DIR=/var/www/html/
 
 echo -n "Enter username for proj-309-16.cs.iastate.edu > "
-echo
 read USERNM
+
+echo -n Password:
+read -s password
+echo
+# Run Command
+echo $password
+
 echo building dart project
 pub build
 echo compressing build

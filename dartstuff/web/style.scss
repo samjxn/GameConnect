@@ -16,13 +16,13 @@ body {
               rgba(0,0,0,.2) 0 10px 10px, rgba(0,0,0,.1) 0 20px 20px;
 }
 
-.user-input-form {
+.user-input-form-wrapper {
   width: 50%;
   margin: 0 auto;
   padding: 10px;
   position: relative;
 
-  input {
+  .user-input-form {
     margin: 0 auto;
     height: 100px;
     width: 100%;
