@@ -46,12 +46,11 @@ class HelloWorldApi {
     });
 
     ws.onMessage.listen((MessageEvent e) {
-      outputMsg('Received message: ${e.data}');
+      outputMsg(e.data);
     });
   }
 
   void sendMessage(String message){
-    outputMsg('Sent message: ${message}');
     ws.send(message);
   }
 

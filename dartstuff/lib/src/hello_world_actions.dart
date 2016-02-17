@@ -6,6 +6,6 @@ class HelloWorldActions {
   Action<String> chatRoomMessageReceived = new Action<String>();
   Action<String> sendChatMessage = new Action<String>();
   Action connectionButtonPressed = new Action();
-
+  Action clearChatMessages = new Action();
 
 }

@@ -18,6 +18,7 @@ class ChatRoomStore extends Store {
     _actions.connectionButtonPressed.listen(_onConnectButtonPress);
     _actions.chatRoomMessageReceived.listen(_onMessageReceived);
     _actions.sendChatMessage.listen(_onSendChatMessage);
+    _actions.clearChatMessages.listen(_clearChatMessages);
   }
 
   _onConnectButtonPress(dynamic) {
@@ -27,6 +28,11 @@ class ChatRoomStore extends Store {
     } else {
       _api.closeSocket();
     }
+    trigger();
+  }
+
+  _clearChatMessages(dynamic) {
+    _messages = [];
     trigger();
   }
 

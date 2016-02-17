@@ -21,22 +21,39 @@ class ChatRoomComponent extends FluxComponent<HelloWorldActions, ChatRoomStore> 
     return div({'className':'chat-room'}, message_divs);
   }
 
+  _onInputKeyUp(SyntheticKeyboardEvent e) {
+    // KeyCode 13 is 'return'
+    if (e.keyCode == 13) {
+      actions.sendChatMessage.call(e.target.value);
+    }
+  }
+
+  _onClearMessages(SytheticMouseEvent e){
+    actions.clearChatMessages.call();
+  }
+
   render() {
     bool shouldDisplay = store.isConnected;
 
     List toRender = [];
+
     if (shouldDisplay) {
-      toRender.add(input({'className':'chatroom-input', 'onKeyUp': (SyntheticKeyboardEvent e) {
-        if (e.keyCode == 13) {
-          actions.sendChatMessage.call(e.target.value);
-        }
-      }}));
+      toRender.add(
+          div({},[
+            input({
+                'className':'chatroom-input',
+                'onKeyUp': _onInputKeyUp
+              }),
+            button({
+              'className':'chatroom-clear-messages-button',
+              'onClick': _onClearMessages
+            }),
+            ]
+          )
+      );
       toRender.add(_buildChatRoom());
     }
 
-    else {
-      toRender.add("Chat room disconnected.");
-    }
     var domElement = div({'className': 'chat-room-wrapper'}, toRender);
     return domElement;
   }
