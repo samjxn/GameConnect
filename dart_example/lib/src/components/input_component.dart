@@ -21,7 +21,7 @@ class InputComponent extends Component {
     var user_input = div({'className':'user-input-form-wrapper'},
         [
           input({'className': 'user-input-form', 'onChange': onInputChange}),
-          button({'className': 'button-open-websocket', 'onClick': onButtonClick}, "THIS IS A BUTTON THAT DOES THINGS WHEN ITS PRESSED AND IT'S REALLY LONG BECAUSE THIS IS A BIG LABEL")
+          button({'className': 'button-open-websocket', 'onClick': onButtonClick}, "Chat Room")
         ]);
     return user_input;
   }

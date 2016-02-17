@@ -47,7 +47,7 @@ class ChatRoomComponent extends FluxComponent<HelloWorldActions, ChatRoomStore> 
             button({
               'className':'chatroom-clear-messages-button',
               'onClick': _onClearMessages
-            }),
+            },("Clear Messages")),
             ]
           )
       );
