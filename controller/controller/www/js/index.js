@@ -1,77 +1,54 @@
-var app = {
-    // Application Constructor
-    initialize: function() {
-        this.bindEvents();
-    },
+(function () {
 
-    // Bind Event Listeners
-    bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-    },
+    /* ---------------------------------- Local Variables ---------------------------------- */
+    var viewStack = new Array();
 
-    // deviceready Event Handler
-    onDeviceReady: function() {
-      app.renderHomeView();
+    /* --------------------------------- Event Registration -------------------------------- */
+    document.addEventListener('deviceready', function () {
+      document.addEventListener("backbutton", onBackKeyDown, false);
+      renderHomeView();
+    }, false);
 
-      document.getElementById("debug").addEventListener("click", renderDebugView());
+    /* ---------------------------------- Local Functions ---------------------------------- */
 
-      // Override default HTML alert with native dialog
-      if (navigator.notification) {
-        window.alert = function (message) {
-          navigator.notification.alert(
-            message,    // message
-            null,       // callback
-            "Workshop", // title
-            'OK'        // buttonName
-          );
-        };
-      }
-    },
-
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-      var parentElement = document.getElementById(id);
-      var listeningElement = parentElement.querySelector('.listening');
-      var receivedElement = parentElement.querySelector('.received');
-
-      listeningElement.setAttribute('style', 'display:none;');
-      receivedElement.setAttribute('style', 'display:block;');
-
-      console.log('Received Event: ' + id);
-    },
-
-    // Render the home view
-    renderHomeView: function() {
-      var html =
-        "<div class='app'>" +
-          "<h1>Pair With Computer</h1>" +
-          "<form id='pairing' onSubmit='return pairRequest()'>" +
-            "<input type='text' name='pairing_code' value='Enter the Code on Your Screen'><br>" +
-            "<input type='submit' value='Pair' class='blink'>" +
-          "</form>" +
-          "<button type='button' class='button' id='debug'>Debug Mode</button>" +
-        "</div>";
-      document.body.innerHTML = html;
-    },
-
-    // Render the debug view
-    renderDebugView: function() {
-      var html =
-        "<div class='app'>" +
-          "<h1>Debug</h1><br><br>" +
-          "<form id='testing' action='demo_form.asp'>" +
-            "<input type='submit' value='Test Event'>" +
-          "</form>" +
-        "</div>";
-      document.body.innerHTML = html;
-    },
-
-    // Pairing
-    pairRequest: function() {
-      // send data to server
-      // handle function submit
+    // Back Key Press Event Handler
+    function onBackKeyDown() {
+      renderHomeView();
     }
 
-};
+    // Pairing Request Event Handler
+    function pairRequest() {
+      // do stuff
+    }
 
-app.initialize();
+
+    /* ---------------------------------- Rendering Views ---------------------------------- */
+
+    // Render the Home View
+    function renderHomeView() {
+      var html =
+        "<h1>Pair With Computer</h1>" +
+        "<form id='pairing' onSubmit='return pairRequest()'>" +
+          "<input type='text' name='pairing_code' value='Enter the Code on Your Screen'><br>" +
+          "<input type='submit' value='Pair' class='blink'>" +
+        "</form>" +
+        "<button type='button' class='button' id='debug'>Debug Mode</button>";
+      document.getElementById('application').innerHTML = html;
+      document.getElementById("debug").onclick = renderDebugView;
+      viewStack.push('home');
+      console.log('Rendering Home View');
+    }
+
+    // Render the Debug View
+    function renderDebugView() {
+      var html =
+        "<h1>Debug</h1><br><br>" +
+        "<form id='testing' action='demo_form.asp'>" +
+          "<input type='submit' value='Test Event'>" +
+        "</form>";
+      document.getElementById('application').innerHTML = html;
+      viewStack.push('debug');
+      console.log('Rendering Debug View');
+    }
+
+}());
