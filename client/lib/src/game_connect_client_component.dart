@@ -12,7 +12,7 @@ import 'api.dart';
 
 part 'components/main_content_component.dart';
 part 'components/pairing_screen_component.dart';
-
+part 'components/level_select_screen_component.dart';
 
 var gameConnectClientComponent =
   react.registerComponent(() => new _GameConnectClientComponent());

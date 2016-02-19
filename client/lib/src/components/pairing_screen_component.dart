@@ -11,45 +11,49 @@ class _PairingScreenComponent extends flux
     .FluxComponent<GameConnectClientActions, GameConnectClientStores> {
   List<flux.Store> redrawOn() => [store.pairingScreenStore];
 
-  String pairCode() => store.pairingScreenStore.pairCode?.code;
+  String pairCode() => store.pairingScreenStore.pairCode;
 
-  _makeNumBox(String number, int digit) {
+  _makeCodeBox(String character, String className, int digit) {
     /**
-     * Number: number to be displayed
+     * Character: character to be displayed
+     * className: class name for the div
      * Digit: which of the five digits is the number (for generating react keys)
      */
     return react.div({
-      'className': 'number-box',
-      'key': 'number-box-$digit'
+      'className': '$className',
+      'key': '$className-$digit'
     }, [
       react.div({
-        'className': 'number-wrapper',
-        'key': 'number-wrapper-$digit'
-      }, number),
+        'className': '$className-char-wrapper',
+        'key': '$className-char-wrapper-$digit'
+      }, character),
     ]);
   }
 
-  _makeDashBox(int digit) {
-    return react.div({
-      'className': 'dash-box',
-      'key': 'dash-box-$digit'
-    }, [
-      react.div({
-        'className': 'dash-wrapper',
-        'key': 'number-wrapper-$digit'
-      }, "-"),
-    ]);
+  _makeInstructionPanel() {
+    var panel = react.div(
+        {
+          'className':'pair-screen-instruction-panel',
+          'key':'pair-screen-instruction-panel'
+        }, react.button({'onClick': (_) {
+             actions.setCurrentComponent("levelSelectScreenComponent");
+            }
+          }, "Simulate pairing approved."));
+
+
+    return panel;
   }
 
   render() {
-    var code = pairCode() ?? '00000';
+    var code = pairCode();
 
     var digits = [];
     int digitMade = 0;
 
     code.split('').forEach((String number){
-      digits.add(_makeNumBox(number, ++digitMade));
-      digits.add(_makeDashBox(digitMade));
+      digits.add(_makeCodeBox(number, 'number-box', digitMade));
+      digits.add(_makeCodeBox('-', 'dash-box', digitMade));
+      digitMade++;
     });
     digits.removeLast();
 
@@ -58,6 +62,7 @@ class _PairingScreenComponent extends flux
       'key': 'pair-screen-content-container'
     }, [
       react.div({'className': 'code-display-wrapper'}, digits),
+      react.div({'className': 'pair-screen-instruction-wrapper'}, _makeInstructionPanel())
     ]);
   }
 }

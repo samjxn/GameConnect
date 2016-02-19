@@ -6,7 +6,7 @@ class PairingScreenStore extends flux.Store {
   GameConnectClientApi _api;
   PairCode _pairCode = null;
 
-  PairCode get pairCode => _pairCode;
+  String get pairCode => _pairCode?.code ?? '00000';
 
   //NOTE:  Cannot make asynchronous calls from the constructor!
   //  Pairing code will be loaded after instantiation
