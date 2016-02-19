@@ -54,3 +54,6 @@ local.properties
 .recommenders/
 
 # End Eclipse ignore stuff
+/server/SocketHandler/nbproject/private/
+/server/SocketHandler/build/
+/server/SocketHandler/dist/
