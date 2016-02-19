@@ -54,7 +54,9 @@ class GameConnectClientApi {
     initWebSocket();
   }
 
-  void outputMsg(String msg){}
+  void outputMsg(String msg){
+    print(msg);
+  }
 
   void requestPairCode() {
 
@@ -66,10 +68,10 @@ class GameConnectClientApi {
 
     String _jsonStr = JSON.encode(_socketJson);
 
-    // TODO:  Enable when we can talk with the backend
+    // TODO:  Enable when backend communication works
 //    _socket.send(_jsonStr);
 
-    // TODO:  remove when _delegateReceivedMessageEvent works
+    // TODO:  remove when backend communication works
     Random r = new Random();
 //    _actions.pairCodeReceived(r.nextInt(100000).toString());
     String pretendJsonStr = '{"pair_code":"${r.nextInt(100000).toString()}"}';
