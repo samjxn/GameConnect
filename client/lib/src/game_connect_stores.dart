@@ -19,7 +19,7 @@ class GameConnectClientStores {
   GameConnectClientStores(
       GameConnectClientActions actions, GameConnectClientApi api) {
     pairingScreenStore = new PairingScreenStore(actions, api);
-    gameConnectClientStore = new GameConnectClientStore(actions);
+    gameConnectClientStore = new GameConnectClientStore(actions, api);
     levelSelectStore = new LevelSelectStore();
 
   }

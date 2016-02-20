@@ -4,14 +4,16 @@ class GameConnectClientStore extends flux.Store {
 
   GameConnectClientActions _actions;
 
-  //TODO:  Don't represent current component with a string.
-  var _currentComponent = 'pairingScreenComponent';
+  //TODO:  Don't represent components via strings
+  String _currentComponent;
+  GameConnectClientApi _api;
 
   get currentComponent => _currentComponent;
 
 
-  GameConnectClientStore(this._actions) {
+  GameConnectClientStore(this._actions, this._api) {
     _actions.setCurrentComponent.listen(_onSetComponent);
+    _actions.onQuit.listen(_onUserQuit);
   }
 
   _onSetComponent(String component) {
@@ -19,4 +21,8 @@ class GameConnectClientStore extends flux.Store {
     trigger();
   }
 
+  _onUserQuit(_){
+    _currentComponent = 'pairingScreenComponent';
+    trigger();
+  }
 }

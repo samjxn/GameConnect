@@ -57,12 +57,22 @@ class _PairingScreenComponent extends flux
     });
     digits.removeLast();
 
+    var panel = _makeInstructionPanel();
+    test.add(panel);
+    print(panel);
+
+    if (test.length > 1) {
+      if (test[0] == test[1]) {
+        print('1');
+      }
+    }
+
     return react.div({
       'className': 'pair-screen-content-container',
       'key': 'pair-screen-content-container'
     }, [
       react.div({'className': 'code-display-wrapper'}, digits),
-      react.div({'className': 'pair-screen-instruction-wrapper'}, _makeInstructionPanel())
+      react.div({'className': 'pair-screen-instruction-wrapper'}, panel)
     ]);
   }
 }

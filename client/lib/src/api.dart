@@ -33,7 +33,7 @@ class GameConnectClientApi {
 
       _socket.onOpen.listen((e) {
         outputMsg('Connected');
-        _actions.onSocketConnect(null);
+        _actions.onSocketConnect();
       });
 
       _socket.onClose.listen((e) {
