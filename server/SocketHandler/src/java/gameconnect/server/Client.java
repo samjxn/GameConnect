@@ -9,6 +9,7 @@ public class Client {
     
     private Session session;
     private final ClientType type;
+    protected ClientGroup myGroup;
     
     public Client() {
         type = ClientType.PC;
