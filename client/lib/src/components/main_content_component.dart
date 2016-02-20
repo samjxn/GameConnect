@@ -6,7 +6,33 @@ var mainContentComponent =
 class _MainContentComponent
   extends flux.FluxComponent<GameConnectClientActions, GameConnectClientStores> {
 
+
+
   List <flux.Store> redrawOn() => [store.gameConnectClientStore];
 
-  render() => react.div({'className': 'pairing-screen-container'}, pairingScreenComponent({'actions': actions, 'store': store}));
+
+  getCurrentComponent() {
+
+    var currentComponent;
+
+    //TODO:  Do something better than a switch statement
+    switch (store.gameConnectClientStore.currentComponent) {
+      case 'pairingScreenComponent':
+        currentComponent = pairingScreenComponent({'actions':actions, 'store':store});
+        break;
+      case 'levelSelectScreenComponent':
+        currentComponent = leveSelectScreenComponent({'actions':actions, 'store':store});
+        break;
+      case 'gameDisplayScreenComponent':
+        currentComponent = gameDisplayComponent({'actions':actions, 'store':store});
+        break;
+      default:
+        print(store.gameConnectClientStore.currentComponent);
+        currentComponent = react.div({},"There was an error.  I'm not blaming anyone.  I'm just saying a problem exists.");
+    }
+
+    return currentComponent;
+  }
+
+  render() => react.div({'className': 'pairing-screen-container'}, getCurrentComponent());
 }

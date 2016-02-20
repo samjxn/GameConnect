@@ -4,14 +4,18 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:html';
 import 'dart:convert';
+import 'package:client/src/game_connect_client_models.dart';
 import 'package:client/src/game_connect_actions.dart';
 
 class GameConnectClientApi {
 
   WebSocket _socket;
   GameConnectClientActions _actions;
+  WebSocketMessageDelegator _delegator;
 
-  GameConnectClientApi(GameConnectClientActions this._actions){
+  GameConnectClientApi(this._actions){
+
+    _delegator = new WebSocketMessageDelegator(_actions);
 
     void initWebSocket([int retrySeconds = 2]) {
       var reconnectScheduled = false;
@@ -42,14 +46,17 @@ class GameConnectClientApi {
       });
 
       _socket.onMessage.listen((MessageEvent e) {
-        _delegateReceivedMessageEvent(e);
+        MessageReceivedStrategy m = _delegator.delegateReceivedMessage(e);
+        m.executeStrategy();
       });
     }
 
     initWebSocket();
   }
 
-  void outputMsg(String msg){}
+  void outputMsg(String msg){
+    print(msg);
+  }
 
   void requestPairCode() {
 
@@ -61,27 +68,15 @@ class GameConnectClientApi {
 
     String _jsonStr = JSON.encode(_socketJson);
 
-    // TODO:  Enable when we can talk with the backend
+    // TODO:  Enable when backend communication works
 //    _socket.send(_jsonStr);
 
-    // TODO:  remove when _delegateReceivedMessageEvent works
+    // TODO:  remove when backend communication works
     Random r = new Random();
-    _actions.pairCodeReceived(r.nextInt(100000).toString());
+//    _actions.pairCodeReceived(r.nextInt(100000).toString());
+    String pretendJsonStr = '{"pair_code":"${r.nextInt(100000).toString()}"}';
+    MessageReceivedStrategy m = _delegator.delegateReceivedMessage(null, fakeData:pretendJsonStr);
+    m.executeStrategy();
   }
 
-  _delegateReceivedMessageEvent(MessageEvent e) {
-    // interpret from the message response which action to call
-
-    // Use a design pattern to intelligently do the following:
-
-    // PSEUDOCODE:
-    //
-    // Map<String, dynamic> jsonData = JSON.decode(e.data);
-    //
-    // if (jsonData['pairCode'] != null) {
-    //     _actions.pairCodeReceived(jsonData['pairCode'];
-    // }
-    //
-    // ... continued for handling every message the backend sends
-  }
 }
