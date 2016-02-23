@@ -4,15 +4,18 @@ import javax.websocket.Session;
 /**
  *
  * @author davidboschwitz
+ * @author Sam Jackson
  */
 public class Client {
     
-    private Session session;
-    private final ClientType type;
-    protected ClientGroup myGroup;
+    protected Session session;
+    protected final ClientType clientType;
+    protected ClientGroup clientGrouping;
     
-    public Client() {
-        type = ClientType.PC;
+    public Client(ClientType type, Session session, ClientGroup group) {
+        this.clientType = type;
+        this.session = session;
+        this.clientGrouping = group;
     }
     
     public void sendText(String msg) throws java.io.IOException {

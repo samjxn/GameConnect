@@ -11,9 +11,26 @@ package gameconnect.server.io;
  */
 public class Message {
     
-    String action;
-    String error;
-    String code;
-    String contents;
+    protected String groupId;
+    private String sourceType;
     
+    private MessageContent content;
+    
+    public Message(String id, String sourceType, MessageContent content) {
+        this.groupId = id;
+        this.sourceType = sourceType;
+        this.content = content;
+    }
+    
+    public String getGroupId() {
+        return this.groupId;
+    }
+    
+    public String getSourceType() {
+        return this.sourceType;
+    }
+    
+    public MessageContent getContent() {
+        return this.content;
+    }
 }
