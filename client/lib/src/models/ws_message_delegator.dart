@@ -15,9 +15,14 @@ class WebSocketMessageDelegator {
 
     String toDecode = fakeData ?? e.data;
 
-    Map jsonData = JSON.decode(toDecode);
+    Map jsonData;
+    try {
+      jsonData = JSON.decode(toDecode);
+    } catch(Exception) {
+      return new DoNothingStrategy(_actions, jsonData);
+    }
 
-    if (jsonData['pair_code'] != null){
+    if (jsonData['content']['pairingCode'] != null){
       return new PairCodeReceivedStrategy(_actions, jsonData);
     }
 

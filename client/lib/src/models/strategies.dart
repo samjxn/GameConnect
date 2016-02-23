@@ -6,19 +6,24 @@ abstract class MessageReceivedStrategy {
   Map<flux.Action, dynamic> _payloads = {};
 
   dynamic executeStrategy(){
-    _actionsToComplete.forEach((flux.Action action) => action.call(_payloads[action]));
+    _actionsToComplete.forEach((flux.Action action) =>
+        action.call(_payloads[action]));
 
     return;
   }
 }
 
 class PairCodeReceivedStrategy extends MessageReceivedStrategy {
-
-
-
   PairCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
     _actionsToComplete.add(_actions.pairCodeReceived);
-    _payloads[_actions.pairCodeReceived] = jsonData['pair_code'];
+    _payloads[_actions.pairCodeReceived] = jsonData['content']['pairingCode'];
   }
+}
 
+class DoNothingStrategy extends MessageReceivedStrategy {
+
+  DoNothingStrategy(GameConnectClientActions _actions, Map jsonData) {
+    _actionsToComplete = [];
+    _payloads = {};
+  }
 }
