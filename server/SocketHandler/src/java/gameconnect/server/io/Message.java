@@ -7,7 +7,7 @@ package gameconnect.server.io;
 
 /**
  *
- * @author davidboschwitz
+ * @author David Boschwitz, Sam Jackson
  */
 public class Message {
     

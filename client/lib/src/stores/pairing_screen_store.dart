@@ -5,13 +5,10 @@ class PairingScreenStore extends flux.Store {
   GameConnectClientActions _actions;
   GameConnectClientApi _api;
   PairCode _pairCode = null;
-  bool _pairCodeRequestMade = false;
+  static bool _pairCodeRequestMade = false;
+  static bool _pairScreenActive = false;
 
   String get pairCode {
-    if (_pairCode == null && !_pairCodeRequestMade) {
-      _pairCodeRequestMade = true;
-      _api.requestPairCode();
-    }
     return _pairCode?.code ?? '00000';
   }
 
@@ -21,36 +18,44 @@ class PairingScreenStore extends flux.Store {
   //  Pairing code will be loaded after instantiation
   PairingScreenStore(this._actions, this._api) {
     // listen for actions:  instantiate listeners
-    _actions.onSocketConnect.listen(_onLoadStore);
+    _actions.onSocketConnect.listen(_onWebsocketConnect);
     _actions.pairCodeReceived.listen(_onPairCodeReceived);
     _actions.requestPairCode.listen(_onRequestPairCode);
     _actions.setCurrentComponent.listen(_onSetComponent);
+    _actions.onQuit.listen(_onQuit);
   }
 
-  void _onLoadStore(_) {
-//    _api.requestPairCode();
+  void _onWebsocketConnect(_) {
+    if (!_pairCodeRequestMade) {
+      _pairCodeRequestMade = _api.requestPairCode();
+    }
+  }
+
+  void _onQuit(_) {
+    _onSetComponent("pairingScreenComponent");
   }
 
   _onRequestPairCode(_){
-    if (!_pairCodeRequestMade) {
-      _api.requestPairCode();
-    }
+//    if (!_pairCodeRequestMade) {
+//      _api.requestPairCode();
+//    }
   }
 
   void _onPairCodeReceived(String code) {
     _pairCode = new PairCode(code);
-    _pairCodeRequestMade = false;
     trigger();
   }
 
   void _onSetComponent(String component) {
-    if (component != 'pairingScreenComponent'){
+  if (component == 'pairingScreenComponent' && !_pairScreenActive) {
+    _pairScreenActive = true;
+    if (!_pairCodeRequestMade) {
+      _pairCodeRequestMade = _api.requestPairCode();
+    }
+  } else if (_pairScreenActive && component != 'pairingScreenComponent') {
+      _pairScreenActive = false;
+      _pairCodeRequestMade = false;
       _pairCode = null;
-    } else {
-      if (!_pairCodeRequestMade) {
-        _api.requestPairCode();
-      }
     }
   }
-
 }

@@ -45,6 +45,7 @@ class GameConnectClientApi {
       });
 
       _socket.onMessage.listen((MessageEvent e) {
+        print("MESSAGE:  "+e.data);
         MessageReceivedStrategy m = _delegator.delegateReceivedMessage(e);
         m.executeStrategy();
       });
@@ -57,7 +58,7 @@ class GameConnectClientApi {
     print(msg);
   }
 
-  void requestPairCode() {
+  bool requestPairCode() {
 
     Map<String, dynamic> _messageJson = {};
 
@@ -73,7 +74,11 @@ class GameConnectClientApi {
 
     if(_socket.readyState == 1) {
       _socket.send(_jsonStr);
+      return true;
     }
+
+    return false;
+
 //     TODO:  remove when backend communication works
 //    Random r = new Random();
 ////    _actions.pairCodeReceived(r.nextInt(100000).toString());
