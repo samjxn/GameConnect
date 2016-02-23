@@ -22,7 +22,7 @@ class GameConnectClientApi {
       outputMsg("Connecting to websocket");
 
       // TODO:  Change address when we have a working backend
-      _socket = new WebSocket('ws://echo.websocket.org');
+      _socket = new WebSocket('ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect');
 
       void scheduleReconnect() {
         if (!reconnectScheduled) {
@@ -32,7 +32,6 @@ class GameConnectClientApi {
       }
 
       _socket.onOpen.listen((e) {
-        outputMsg('Connected');
         _actions.onSocketConnect();
       });
 
@@ -60,23 +59,27 @@ class GameConnectClientApi {
 
   void requestPairCode() {
 
-    Map<String, dynamic> _socketJson = {};
+    Map<String, dynamic> _messageJson = {};
 
-    _socketJson['client_type'] = 'pc-client';
-    _socketJson['client_id'] = 'MY_ID';
-    _socketJson['requesting_room'] = true;
+    _messageJson['groupId'] = null;
+    _messageJson['sourceType'] = "pc-client";
+    _messageJson['messageType'] = "pairing-request";
+    _messageJson['content'] = null;
 
-    String _jsonStr = JSON.encode(_socketJson);
+//    _socketJson['client_id'] = 'MY_ID';
+//    _socketJson['requesting_room'] = true;
 
-    // TODO:  Enable when backend communication works
-//    _socket.send(_jsonStr);
+    String _jsonStr = JSON.encode(_messageJson);
 
-    // TODO:  remove when backend communication works
-    Random r = new Random();
-//    _actions.pairCodeReceived(r.nextInt(100000).toString());
-    String pretendJsonStr = '{"pair_code":"${r.nextInt(100000).toString()}"}';
-    MessageReceivedStrategy m = _delegator.delegateReceivedMessage(null, fakeData:pretendJsonStr);
-    m.executeStrategy();
+    if(_socket.readyState == 1) {
+      _socket.send(_jsonStr);
+    }
+//     TODO:  remove when backend communication works
+//    Random r = new Random();
+////    _actions.pairCodeReceived(r.nextInt(100000).toString());
+//    String pretendJsonStr = '{"pair_code":"${r.nextInt(100000).toString()}"}';
+//    MessageReceivedStrategy m = _delegator.delegateReceivedMessage(null, fakeData:pretendJsonStr);
+//    m.executeStrategy();
   }
 
 }

@@ -17,5 +17,5 @@ package gameconnect.server.io;
  * @author Sam Jackson
  */
 public class MessageContent {
-    boolean flap;
+    
 }

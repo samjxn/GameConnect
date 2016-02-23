@@ -1,7 +1,6 @@
 package gameconnect.server;
 
-import gameconnect.server.io.Message;
-import gameconnect.server.io.MessageContent;
+import gameconnect.server.io.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,13 +22,13 @@ import com.google.gson.GsonBuilder;
 public class ConnectionHandler {
     
     private Gson gson;
-    Integer connectionCount = 0;
-    Integer groupCount = 0;
+    static Integer connectionCount = 0;
+    static Integer groupCount = 0;
     
     /**
      * Maps 5-digit pairing code to pairing groups
      */
-    private HashMap<String, ClientGroup> openGroups;
+    private static HashMap<String, ClientGroup> openGroups;
     
     /**
      * Maps group ids to Group objects
@@ -37,11 +36,11 @@ public class ConnectionHandler {
     protected static HashMap<String, ClientGroup> clientGroups;
     
     private final int MAX_OPEN_CONNECTIONS = 100000;
-    
+        
     public ConnectionHandler() {
         this.gson = new GsonBuilder().create();
-        this.openGroups = new HashMap<String, ClientGroup>();
-        this.clientGroups = new HashMap<String, ClientGroup>();
+        ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
+        ConnectionHandler.clientGroups = new HashMap<String, ClientGroup>();
     }
     
     /**
@@ -54,7 +53,7 @@ public class ConnectionHandler {
     public void onOpen(Session session){
         println(session.getId() + " has opened a connection"); 
         try {
-            session.getBasicRemote().sendText("Connection Established");
+            session.getBasicRemote().sendText("Connection Established!");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -85,22 +84,38 @@ public class ConnectionHandler {
         println("Message from " + session.getId() + ": " + messageJson);
         //TODO: Parse Message
         
-        Message message = gson.fromJson(messageJson, Message.class);
-        
-        if (message.getGroupId() == null && 
-                message.getSourceType().equals("pc-client")) {
-           
-            ClientGroup group = new ClientGroup();
-            Client client = new Client(ClientType.PC, session, group);
-           
-            group.giveClient(client);
-            group.groupId = 
-            
+        Message message;
+        try {
+            message = gson.fromJson(messageJson, Message.class);
+        } catch (Exception e) {
+            message = new Message(null, null, null, null);
         }
         
-        
         try {
-            session.getBasicRemote().sendText(messageJson);
+            if (message.getGroupId() == null && 
+                    message.getSourceType()!= null && message.getSourceType().equals("pc-client")) {
+
+                ClientGroup group = new ClientGroup();
+                Client client = new Client(ClientType.PC, session, group);
+
+                group.giveClient(client);
+                group.groupId = ConnectionHandler.groupCount.toString();
+
+                String pairingCode = ConnectionHandler.connectionCount.toString();
+                ConnectionHandler.openGroups.put(pairingCode, group);
+
+
+
+                Message m = new Message(group.groupId, "backend", "pair-code-response", 
+                        new PairingCodeRequestResponseContent(pairingCode));
+
+                session.getBasicRemote().sendText(gson.toJson(m, Message.class));
+                
+                ConnectionHandler.connectionCount++;
+                ConnectionHandler.groupCount++;
+            } else {
+                session.getBasicRemote().sendText("Message not recognized");
+            }    
         } catch (IOException ex) {
             ex.printStackTrace();
         }

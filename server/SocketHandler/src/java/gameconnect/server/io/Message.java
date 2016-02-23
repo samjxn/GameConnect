@@ -13,12 +13,13 @@ public class Message {
     
     protected String groupId;
     private String sourceType;
-    
+    private String messageType;
     private MessageContent content;
     
-    public Message(String id, String sourceType, MessageContent content) {
+    public Message(String id, String sourceType, String messageType, MessageContent content) {
         this.groupId = id;
         this.sourceType = sourceType;
+        this.messageType = messageType;
         this.content = content;
     }
     
@@ -28,6 +29,10 @@ public class Message {
     
     public String getSourceType() {
         return this.sourceType;
+    }
+    
+    public String getMessageType() {
+        return this.messageType;
     }
     
     public MessageContent getContent() {

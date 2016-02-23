@@ -32,7 +32,9 @@ class PairingScreenStore extends flux.Store {
   }
 
   _onRequestPairCode(_){
-    _api.requestPairCode();
+    if (!_pairCodeRequestMade) {
+      _api.requestPairCode();
+    }
   }
 
   void _onPairCodeReceived(String code) {
@@ -45,7 +47,9 @@ class PairingScreenStore extends flux.Store {
     if (component != 'pairingScreenComponent'){
       _pairCode = null;
     } else {
-      _api.requestPairCode();
+      if (!_pairCodeRequestMade) {
+        _api.requestPairCode();
+      }
     }
   }
 
