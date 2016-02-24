@@ -28,19 +28,24 @@ public class ConnectionHandler {
     /**
      * Maps 5-digit pairing code to pairing groups
      */
-    private static HashMap<String, ClientGroup> openGroups;
+    private static HashMap<String, ClientGroup> openGroups = null;
     
     /**
      * Maps group ids to Group objects
      */
-    protected static HashMap<String, ClientGroup> clientGroups;
+    protected static HashMap<String, ClientGroup> clientGroups = null;
     
     private final int MAX_OPEN_CONNECTIONS = 100000;
         
     public ConnectionHandler() {
         this.gson = new GsonBuilder().create();
-        ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
-        ConnectionHandler.clientGroups = new HashMap<String, ClientGroup>();
+        
+        if (openGroups == null) {
+            ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
+        }
+        if (clientGroups == null) {
+            ConnectionHandler.clientGroups = new HashMap<String, ClientGroup>();
+        }
     }
     
     /**
@@ -82,11 +87,13 @@ public class ConnectionHandler {
         
         
         println("Message from " + session.getId() + ": " + messageJson);
-        
+
         Message incommingMessage;
         try {
             incommingMessage = gson.fromJson(messageJson, Message.class);
-        } catch (Exception e) {
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             incommingMessage = new Message(null, null, null, null);
         }
         

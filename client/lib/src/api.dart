@@ -64,7 +64,7 @@ class GameConnectClientApi {
 
     _messageJson['groupId'] = null;
     _messageJson['sourceType'] = "pc-client";
-    _messageJson['messageType'] = "pairing-request";
+    _messageJson['messageType'] = "open-new-group";
     _messageJson['content'] = null;
 
 //    _socketJson['client_id'] = 'MY_ID';
