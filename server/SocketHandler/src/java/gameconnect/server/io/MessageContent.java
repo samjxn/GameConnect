@@ -17,5 +17,15 @@ package gameconnect.server.io;
  * @author Sam Jackson
  */
 public class MessageContent {
+//    
+//    private String messageText;
+//    
+//    public MessageContent(String text) {
+//        this.messageText = text;
+//    }
+//    
+//    public String getText(){
+//        return this.messageText;
+//    }
     
 }

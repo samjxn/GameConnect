@@ -1,5 +1,7 @@
 package gameconnect.server;
 
+import gameconnect.server.MessageType;
+import gameconnect.server.SourceType;
 import gameconnect.server.io.*;
 
 import java.io.IOException;
@@ -22,8 +24,6 @@ import com.google.gson.GsonBuilder;
 public class ConnectionHandler {
     
     private Gson gson;
-    static Integer connectionCount = 0;
-    static Integer groupCount = 0;
     
     /**
      * Maps 5-digit pairing code to pairing groups
@@ -82,40 +82,92 @@ public class ConnectionHandler {
         
         
         println("Message from " + session.getId() + ": " + messageJson);
-        //TODO: Parse Message
         
-        Message message;
+        Message incommingMessage;
         try {
-            message = gson.fromJson(messageJson, Message.class);
+            incommingMessage = gson.fromJson(messageJson, Message.class);
         } catch (Exception e) {
-            message = new Message(null, null, null, null);
+            incommingMessage = new Message(null, null, null, null);
+        }
+        
+        // Messages should always have a messageType and sourceType.
+        if(incommingMessage.getSourceType() == null || 
+                incommingMessage.getMessageType() == null) {
+            return;
+        }
+        
+        OutgoingMessage response = null;
+        SendStrategy sender = null;
+        
+        //TODO:  Replace switch block with a design pattern.
+        switch(incommingMessage.getMessageType()){
+            case MessageType.OPEN_NEW_GROUP:
+                if (incommingMessage.getGroupId() == null &&
+                        incommingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
+                
+                String pairingCode = Integer.toString(this.openGroups.size());
+               
+                Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, pairingCode);
+                
+                Client client = clientClientGroupTuple.item0;
+                ClientGroup group = clientClientGroupTuple.item1;
+                
+                sender = new ToClientSender(client);
+                response = new OutgoingMessage(group.groupId, SourceType.BACKEND, MessageType.PAIR_CODE_RESPONSE, 
+                        new PairingCodeMessageContent(pairingCode), sender);
+                
+                } else{
+              // Message already had a groupId or Message is not from PC_Client
+                }    
+                break;
+                
+            case MessageType.JOIN_GROUP:
+                if (incommingMessage.getGroupId() == null && 
+                        incommingMessage.getSourceType().equals(SourceType.CONTROLLER) && 
+                        incommingMessage.getContent() != null){
+                    // get the pairing code from the message
+                    PairingCodeMessageContent content = (PairingCodeMessageContent)incommingMessage.getContent();
+                    String pairCode = content.getPairingCode();
+                    // trim the zeroes
+
+                    ClientGroup group = this.openGroups.get(pairCode);
+
+                    // find the open group in the hash map
+                    // put the client into the group.
+                    if (group != null){
+                        Client controllerClient = new Client(ClientType.MOBILE, session, group);
+                        String clientId = ""; // TODO:  Remove when clients have ids
+                        
+                        group.giveClient(controllerClient);
+                        
+                        //TODO:  Change message content
+                        // respond whether or not that worked.
+                        sender = new ToGroupSender(controllerClient);
+                        response = new OutgoingMessage(group.groupId, SourceType.BACKEND, 
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId), sender);
+                    
+                    } else {
+                        sender = new ToSessionSender(session);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Open Group did not exist"), sender);
+                    }
+                    
+                }
+                break;
+                
+            
         }
         
         try {
-            if (message.getGroupId() == null && 
-                    message.getSourceType()!= null && message.getSourceType().equals("pc-client")) {
-
-                ClientGroup group = new ClientGroup();
-                Client client = new Client(ClientType.PC, session, group);
-
-                group.giveClient(client);
-                group.groupId = ConnectionHandler.groupCount.toString();
-
-                String pairingCode = ConnectionHandler.connectionCount.toString();
-                ConnectionHandler.openGroups.put(pairingCode, group);
-
-
-
-                Message m = new Message(group.groupId, "backend", "pair-code-response", 
-                        new PairingCodeRequestResponseContent(pairingCode));
-
-                session.getBasicRemote().sendText(gson.toJson(m, Message.class));
+            
+            if (response == null){
+                sender = new ToSessionSender(session);
+                response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, 
+                        new ErrorMessageContent("Message not Recognized."), sender);
                 
-                ConnectionHandler.connectionCount++;
-                ConnectionHandler.groupCount++;
-            } else {
-                session.getBasicRemote().sendText("Message not recognized");
-            }    
+            }
+            
+            response.send();
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -137,13 +189,39 @@ public class ConnectionHandler {
     }
     
     private static void println(String s){
-        System.out.println("[EchoSocket]: "+ s);
+        System.out.println("[GameConnect]: "+ s);
     }
     
-    private void incrementConnectionCount() {
-        if (openGroups.size() >= MAX_OPEN_CONNECTIONS) {
-            throw new IllegalStateException("Max number of open connections reached.");
+    /**
+     * Creates a new Group
+     * @param clientSession
+     * @return 
+     */
+    private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String pairingCode) {
+        
+        if (this.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
+            throw new IllegalStateException("Max open connections reached.");
         }
-        this.connectionCount = (connectionCount + 1) % MAX_OPEN_CONNECTIONS;
+        
+        String groupId = Integer.toString(this.clientGroups.size());
+        
+        ClientGroup group = new ClientGroup(groupId);
+        Client c = new Client(ClientType.PC, clientSession, group);
+        group.giveClient(c);
+        
+        this.openGroups.put(pairingCode, group);
+        this.clientGroups.put(group.groupId, group);
+        
+        return new Tuple<Client, ClientGroup>(c, group);
+    }
+    
+    private class Tuple<S, T> {
+        protected S item0;
+        protected T item1;
+        
+        protected Tuple(S item0, T item1) {
+            this.item0 = item0;
+            this.item1 = item1;
+        }
     }
 }

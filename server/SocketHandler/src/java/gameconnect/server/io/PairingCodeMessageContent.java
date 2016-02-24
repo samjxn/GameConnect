@@ -6,14 +6,16 @@
 package gameconnect.server.io;
 
 /**
- *
- * @author personal
+ * A class structuring the message content for a response to a pairing code
+ * request
+ * 
+ * @author Sam Jackson
  */
-public class PairingCodeRequestResponseContent extends MessageContent {
+public class PairingCodeMessageContent extends MessageContent {
     
     private String pairingCode;
     
-    public PairingCodeRequestResponseContent(String pairingCode){
+    public PairingCodeMessageContent(String pairingCode){
         this.pairingCode = pairingCode;
     }
     

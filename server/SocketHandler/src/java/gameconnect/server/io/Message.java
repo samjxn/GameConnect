@@ -16,13 +16,21 @@ public class Message {
     private String messageType;
     private MessageContent content;
     
-    public Message(String id, String sourceType, String messageType, MessageContent content) {
-        this.groupId = id;
+    
+    /**
+     * Creates a new message
+     * @param groupId 
+     * @param sourceType
+     * @param messageType
+     * @param content 
+     */
+    public Message(String groupId, String sourceType, String messageType, MessageContent content) {
+        this.groupId = groupId;
         this.sourceType = sourceType;
         this.messageType = messageType;
         this.content = content;
     }
-    
+       
     public String getGroupId() {
         return this.groupId;
     }
