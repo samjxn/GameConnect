@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="io.cordova.hellocordova" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <preference name="Fullscreen" value="true" />
     <name>controller</name>
     <description>
         A game controller for iOS and Android mobile phones that pairs with a desktop web application.
@@ -21,6 +22,9 @@
         <allow-intent href="market:*" />
         <icon src="res/android/icon.png" platform="android" width="57" height="57" density="mdpi" />
         <splash src="res/android/icon.png" density="port-mdpi"/>
+        <feature name="NetworkStatus">
+          <param name="android-package" value="org.apache.cordova.NetworkManager" />
+        </feature>
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />

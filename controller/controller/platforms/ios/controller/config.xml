@@ -31,10 +31,14 @@
     <feature name="Accelerometer">
         <param name="ios-package" value="CDVAccelerometer" />
     </feature>
+    <feature name="NetworkStatus">
+        <param name="ios-package" value="CDVConnection" />
+    </feature>
     <allow-intent href="itms:*" />
     <allow-intent href="itms-apps:*" />
     <icon density="mdpi" height="57" platform="ios" src="res/ios/icon.png" width="57" />
     <splash density="port-mdpi" src="res/ios/icon.png" />
+    <preference name="Fullscreen" value="true" />
     <name>controller</name>
     <description>
         A game controller for iOS and Android mobile phones that pairs with a desktop web application.
@@ -45,6 +49,7 @@
     <content src="index.html" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
+    <allow-intent href="ws://*/*" />
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />
     <allow-intent href="sms:*" />

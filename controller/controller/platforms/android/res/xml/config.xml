@@ -8,9 +8,13 @@
     <feature name="Accelerometer">
         <param name="android-package" value="org.apache.cordova.devicemotion.AccelListener" />
     </feature>
+    <feature name="NetworkStatus">
+        <param name="android-package" value="org.apache.cordova.networkinformation.NetworkManager" />
+    </feature>
     <allow-intent href="market:*" />
     <icon density="mdpi" height="57" platform="android" src="res/android/icon.png" width="57" />
     <splash density="port-mdpi" src="res/android/icon.png" />
+    <preference name="Fullscreen" value="true" />
     <name>controller</name>
     <description>
         A game controller for iOS and Android mobile phones that pairs with a desktop web application.

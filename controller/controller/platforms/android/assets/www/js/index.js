@@ -1,38 +1,64 @@
 (function () {
 
     /* ---------------------------------- Local Variables ---------------------------------- */
-    var viewStack = new Array();
-    var currentView;
-    var webSocket;
-    var watchID;
+    var viewStack = new Array();      // stack for back button behavior
+    var webSocket;                    // websocket connection
+    var watchID;                      // used by accelerometer
+    var pollingAcc = false;           // boolean to track accelerometer
 
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', function () {
+
+      // Add event listeners and render the home view
+      console.log('Device is ready');
       document.addEventListener("backbutton", onBackKeyDown, false);
+      console.log('Rendering home view');
       renderHomeView();
 
-      // Ensures only one connection is open at a time
+      // Ensure only one connection is open at a time
       if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
-        alert('WebSocket is already opened');
+        console.log('WebSocket is already opened');
         return;
       }
 
       // Create a new instance of the websocket
       webSocket = new WebSocket("ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/test/chat");
 
-      // Binds functions to the listeners for the websocket.
+      // When the websocket is opened
       webSocket.onopen = function(event){
-        if(event.data === undefined)
-          alert('WebSocket is open now');
+        console.log('WebSocket connection opened at ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/test/chat');
+        if(event.data === undefined) {
           return;
+        }
       };
 
-      webSocket.onmessage = function(event){
-        // parse the message
+      // When a message is read from the websocket
+      webSocket.onmessage = function(event) {
+        console.log('Message received from WebSocket');
+        switch(event.code) {
+          case 1:
+            // do something
+            break;
+          case 2:
+            // do something
+            break;
+          case 3:
+            // do something
+            break;
+          case 4:
+            // do something
+            break;
+          case 5:
+            // do something
+            break;
+        }
       };
 
+      // When the websocket is closed
       webSocket.onclose = function(event){
-        // handle this
+        console.log('WebSocket closed, resetting application');
+        renderHomeView();
+        stopAcc();
       };
 
     }, false);
@@ -42,21 +68,22 @@
     // Back Key Press Event Handler
     function onBackKeyDown() {
       renderHomeView();
-      if (watchID != null) {
-        navigator.accelerometer.clearWatch(watchID);
-      }
     }
 
+    // Check pairing input field any time the value changes
     function checkPairingCode() {
       if(document.getElementById('codeInput').value.length == 0) {
         document.getElementById('pairButton').disabled = true;
         document.getElementById('message').innerHTML = "Start Typing";
         document.getElementById('message').style.color = '#FFFFFF';
-      }
-      if(document.getElementById('codeInput').value.length == 5) {
+      } else if(document.getElementById('codeInput').value.length == 5) {
         document.getElementById('pairButton').disabled = false;
         document.getElementById('message').innerHTML = "Ready to Pair";
         document.getElementById('message').style.color = '#4CAF50';
+      } else if(document.getElementById('codeInput').value.length > 5) {
+        document.getElementById('pairButton').disabled = true;
+        document.getElementById('message').innerHTML = "Whoops, too long";
+        document.getElementById('message').style.color = '#FFFFFF';
       } else {
         document.getElementById('pairButton').disabled = true;
         document.getElementById('message').innerHTML = "Keep Typing...";
@@ -69,14 +96,47 @@
       document.getElementById('message').innerHTML = "Pairing";
       document.getElementById('message').style.color = '#DC0000';
       document.getElementById('message').className = "blink";
+      document.getElementById('pairButton').disabled = true;
+      document.getElementById('pairButton').className = "blink";
+      document.getElementById('codeInput').disabled = true;
+      console.log('sending pairing code');
+      webSocket.send(document.getElementById('codeInput').value);
     }
 
+    // Test event for debug page - writes input to the websocket
     function testEvent() {
-      alert('firing test event');
-      webSocket.send("hello");
+      console.log('sending message to the websocket');
+      webSocket.send(document.getElementById('debugInput').value);
+      document.getElementById('debugInput').value = "";
     }
 
-    function onSuccess(acceleration) {
+    // Toggle acceleration tracking
+    function toggleAcc() {
+      if (pollingAcc === false) {
+        var options = { frequency: 100 };  // Update every .1 seconds
+        watchID = navigator.accelerometer.watchAcceleration(accSuccess, accError, options);
+        pollingAcc = true;
+      }
+      else {
+        navigator.accelerometer.clearWatch(watchID);
+        pollingAcc = false;
+      }
+    }
+
+    function stopAcc() {
+      if (pollingAcc === true) {
+        navigator.accelerometer.clearWatch(watchID);
+        pollingAcc = false;
+      }
+    }
+
+    // Configure gameplay controls
+    function gameConfig(object) {
+
+    }
+
+    // Success callback for getting acceleration
+    function accSuccess(acceleration) {
     var html =
       "<p> Acc X: " + acceleration.x + "<br>" +
       "<p> Acc Y: " + acceleration.y + "<br>" +
@@ -85,8 +145,9 @@
       document.getElementById('accelerometer').innerHTML = html;
     }
 
-    function onError() {
-      alert('Error checking accelerometer data');
+    // Error callback for getting acceleration
+    function accError() {
+      console.log('error checking accelerometer data');
     }
 
     /* ---------------------------------- Rendering Views ---------------------------------- */
@@ -103,25 +164,28 @@
       document.getElementById('debugButton').onclick = renderDebugView;
       document.getElementById('pairButton').onclick = pairRequest;
       document.getElementById('codeInput').oninput = checkPairingCode;
+      stopAcc();
+      console.log('home view successfully rendered');
     }
 
     // Render the Debug View
     function renderDebugView() {
       var html =
-        "<h1>Debug</h1><br><br>" +
-        "<div id ='accelerometer'></div>" +
-        "<button type='button' class='button' id='testButton'>Test Event</button>";
+        "<h1>Debug</h1>" +
+        "<input type='text' placeholder='Write to WebSocket' id='debugInput'><br>" +
+        "<button type='button' class='button' id='testButton'>Send</button>" +
+        "<div id ='accelerometer'><p> Acc X: --- <br><p> Acc Y: --- <br><p> Acc Z: --- <br><p> Time: --- <br></div>" +
+        "<button type='button' class='button' id='accButton'>Toggle Accelerometer</button>";
       document.getElementById('application').innerHTML = html;
       document.getElementById('testButton').onclick = testEvent;
-
-      var options = { frequency: 100 };  // Update every .1 seconds
-      watchID = navigator.accelerometer.watchAcceleration(onSuccess, onError, options);
+      document.getElementById('accButton').onclick = toggleAcc;
+      console.log('debug view successfully rendered');
     }
 
     // Render the Game Select View
     function renderGameSelectView() {
       var html =
-        "<h1>Select a Game</h1><br><br>";
+        "<h1>Select a Game</h1>";
       document.getElementById('application').innerHTML = html;
     }
 
