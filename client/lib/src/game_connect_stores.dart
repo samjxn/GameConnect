@@ -7,18 +7,18 @@ import 'package:client/src/game_connect_client_models.dart';
 import 'dart:async';
 
 // Parts
-part 'stores/pairing_screen_store.dart';
+part 'stores/grouping_screen_store.dart';
 part 'stores/game_connect_client_store.dart';
 part 'stores/level_select_store.dart';
 
 class GameConnectClientStores {
-  PairingScreenStore pairingScreenStore;
+  GroupingScreenStore groupingScreenStore;
   GameConnectClientStore gameConnectClientStore;
   LevelSelectStore levelSelectStore;
 
   GameConnectClientStores(
       GameConnectClientActions actions, GameConnectClientApi api) {
-    pairingScreenStore = new PairingScreenStore(actions, api);
+    groupingScreenStore = new GroupingScreenStore(actions, api);
     gameConnectClientStore = new GameConnectClientStore(actions, api);
     levelSelectStore = new LevelSelectStore();
 

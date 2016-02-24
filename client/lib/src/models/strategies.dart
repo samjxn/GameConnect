@@ -13,10 +13,10 @@ abstract class MessageReceivedStrategy {
   }
 }
 
-class PairCodeReceivedStrategy extends MessageReceivedStrategy {
-  PairCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
-    _actionsToComplete.add(_actions.pairCodeReceived);
-    _payloads[_actions.pairCodeReceived] = jsonData['content']['groupingCode'];
+class GroupCodeReceivedStrategy extends MessageReceivedStrategy {
+  GroupCodeReceivedStrategy.GroupingCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
+    _actionsToComplete.add(_actions.groupingCodeReceived);
+    _payloads[_actions.groupingCodeReceived] = jsonData['content']['groupingCode'];
   }
 }
 

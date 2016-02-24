@@ -9,9 +9,9 @@ var pairingScreenComponent =
 
 class _PairingScreenComponent extends flux
     .FluxComponent<GameConnectClientActions, GameConnectClientStores> {
-  List<flux.Store> redrawOn() => [store.pairingScreenStore];
+  List<flux.Store> redrawOn() => [store.groupingScreenStore];
 
-  String pairCode() => store.pairingScreenStore.pairCode;
+  String groupCode() => store.groupingScreenStore.groupCode;
 
   _makeCodeBox(String character, String className, int digit) {
     /**
@@ -33,19 +33,19 @@ class _PairingScreenComponent extends flux
   _makeInstructionPanel() {
     var panel = react.div(
         {
-          'className':'pair-screen-instruction-panel',
-          'key':'pair-screen-instruction-panel'
+          'className':'group-screen-instruction-panel',
+          'key':'group-screen-instruction-panel'
         }, react.button({'onClick': (_) {
              actions.setCurrentComponent("levelSelectScreenComponent");
             }
-          }, "Simulate pairing approved."));
+          }, "Simulate grouping approved."));
 
 
     return panel;
   }
 
   render() {
-    var code = pairCode();
+    var code = groupCode();
 
     var digits = [];
     int digitMade = 0;
@@ -60,11 +60,11 @@ class _PairingScreenComponent extends flux
     var panel = _makeInstructionPanel();
 
     return react.div({
-      'className': 'pair-screen-content-container',
-      'key': 'pair-screen-content-container'
+      'className': 'group-screen-content-container',
+      'key': 'group-screen-content-container'
     }, [
       react.div({'className': 'code-display-wrapper'}, digits),
-      react.div({'className': 'pair-screen-instruction-wrapper'}, panel)
+      react.div({'className': 'group-screen-instruction-wrapper'}, panel)
     ]);
   }
 }

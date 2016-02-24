@@ -23,7 +23,7 @@ class WebSocketMessageDelegator {
     }
 
     if (jsonData['content']['groupingCode'] != null){
-      return new PairCodeReceivedStrategy(_actions, jsonData);
+      return new GroupCodeReceivedStrategy.GroupingCodeReceivedStrategy(_actions, jsonData);
     }
 
     return null;

@@ -1,18 +1,18 @@
 part of game_connect_client.src.models;
 
-class PairCode {
+class GroupCode {
 
 
-  int _pairCodeInt;
+  int _groupCodeInt;
   String _code;
 
-  int get pairCodeInt => _pairCodeInt;
+  int get groupCodeInt => _groupCodeInt;
   String get code => _code;
 
 
-  PairCode(String this._code) {
+  GroupCode(String this._code) {
 
-    _pairCodeInt = int.parse(_code);
+    _groupCodeInt = int.parse(_code);
 
     var _codeList = _code.split('');
     for (int i = 5 - _codeList.length; i > 0; i--){

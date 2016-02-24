@@ -14,7 +14,7 @@ import 'game_connect_stores.dart';
 import 'api.dart';
 
 part 'components/main_content_component.dart';
-part 'components/pairing_screen_component.dart';
+part 'components/grouping_screen_component.dart';
 part 'components/level_select_screen_component.dart';
 part 'components/game_display_component.dart';
 
@@ -28,7 +28,7 @@ class _GameConnectClientComponent extends react.Component {
   GameConnectClientStores _stores =  new GameConnectClientStores(_actions, _api);
 
   _GameConnectClientComponent(){
-    _actions.setCurrentComponent('pairingScreenComponent');
+    _actions.setCurrentComponent('groupingScreenComponent');
   }
 
   render() => react.div({'className': ''}, mainContentComponent({'actions': _actions, 'store': _stores}));

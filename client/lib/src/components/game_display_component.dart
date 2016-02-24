@@ -18,7 +18,7 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
           (_) {
             actions.onQuit.call();
           }
-    }, "Simulate disconnect pairing."),
+    }, "Simulate disconnect grouping."),
 //    react.div(song)
     react.div({}, react.audio({'controls':false, 'autoPlay':true, 'src':'./nyan.ogg'}, react.source({'src':'./nyan.ogg', 'type':'/audio/ogg'}))),
   ]);

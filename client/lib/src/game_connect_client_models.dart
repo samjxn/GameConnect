@@ -5,6 +5,6 @@ import 'package:w_flux/w_flux.dart' as flux;
 import 'dart:html';
 import 'dart:convert';
 
-part 'models/pair_code.dart';
+part 'models/group_code.dart';
 part 'models/ws_message_delegator.dart';
 part 'models/strategies.dart';

@@ -58,7 +58,7 @@ class GameConnectClientApi {
     print(msg);
   }
 
-  bool requestPairCode() {
+  bool requestGroupingCode() {
 
     Map<String, dynamic> _messageJson = {};
 
@@ -78,13 +78,6 @@ class GameConnectClientApi {
     }
 
     return false;
-
-//     TODO:  remove when backend communication works
-//    Random r = new Random();
-////    _actions.pairCodeReceived(r.nextInt(100000).toString());
-//    String pretendJsonStr = '{"pair_code":"${r.nextInt(100000).toString()}"}';
-//    MessageReceivedStrategy m = _delegator.delegateReceivedMessage(null, fakeData:pretendJsonStr);
-//    m.executeStrategy();
   }
 
 }
