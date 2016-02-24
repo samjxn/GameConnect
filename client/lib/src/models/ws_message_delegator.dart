@@ -22,7 +22,7 @@ class WebSocketMessageDelegator {
       return new DoNothingStrategy(_actions, jsonData);
     }
 
-    if (jsonData['content']['pairingCode'] != null){
+    if (jsonData['content']['groupingCode'] != null){
       return new PairCodeReceivedStrategy(_actions, jsonData);
     }
 

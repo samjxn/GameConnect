@@ -11,15 +11,15 @@ package gameconnect.server.io;
  * 
  * @author Sam Jackson
  */
-public class PairingCodeMessageContent extends MessageContent {
+public class GroupingCodeMessageContent extends MessageContent {
     
-    private String pairingCode;
+    private String groupingCode;
     
-    public PairingCodeMessageContent(String pairingCode){
-        this.pairingCode = pairingCode;
+    public GroupingCodeMessageContent(String groupingCode){
+        this.groupingCode = groupingCode;
     }
     
-    public String getPairingCode(){
-        return this.pairingCode;
+    public String getGroupingCode(){
+        return this.groupingCode;
     }
 }

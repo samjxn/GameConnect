@@ -26,7 +26,7 @@ public class ConnectionHandler {
     private Gson gson;
     
     /**
-     * Maps 5-digit pairing code to pairing groups
+     * Maps 5-digit grouping code to groups
      */
     private static HashMap<String, ClientGroup> openGroups = null;
     
@@ -69,23 +69,7 @@ public class ConnectionHandler {
      * and allow us to react to it. For now the message is read as a String.
      */
     @OnMessage
-    public void onMessage(String messageJson, Session session){
-        
-        /**
-         * TODO:
-         *  - Message has no groupId and is from PC Client:
-         *   - Create new group, add the PC client
-         *   - Create a pairing code, map the pairing code to the group
-         *
-         *  - Message has no groupID and is from Controller:
-         *   - Find group associated with pairing code, add Controller
-         * 
-         *  - Message has a groupID:
-         *   - Send message to everyone in the group
-         *   - Do not echo the message to the sender
-         */
-        
-        
+    public void onMessage(String messageJson, Session session){      
         println("Message from " + session.getId() + ": " + messageJson);
 
         Message incommingMessage;
@@ -112,16 +96,16 @@ public class ConnectionHandler {
                 if (incommingMessage.getGroupId() == null &&
                         incommingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
                 
-                String pairingCode = Integer.toString(this.openGroups.size());
+                String groupingCode = Integer.toString(this.openGroups.size());
                
-                Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, pairingCode);
+                Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, groupingCode);
                 
                 Client client = clientClientGroupTuple.item0;
                 ClientGroup group = clientClientGroupTuple.item1;
                 
                 sender = new ToClientSender(client);
-                response = new OutgoingMessage(group.groupId, SourceType.BACKEND, MessageType.PAIR_CODE_RESPONSE, 
-                        new PairingCodeMessageContent(pairingCode), sender);
+                response = new OutgoingMessage(group.groupId, SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE, 
+                        new GroupingCodeMessageContent(groupingCode), sender);
                 
                 } else{
               // Message already had a groupId or Message is not from PC_Client
@@ -132,12 +116,12 @@ public class ConnectionHandler {
                 if (incommingMessage.getGroupId() == null && 
                         incommingMessage.getSourceType().equals(SourceType.CONTROLLER) && 
                         incommingMessage.getContent() != null){
-                    // get the pairing code from the message
-                    PairingCodeMessageContent content = (PairingCodeMessageContent)incommingMessage.getContent();
-                    String pairCode = content.getPairingCode();
+                    // get the grouping code from the message
+                    GroupingCodeMessageContent content = (GroupingCodeMessageContent)incommingMessage.getContent();
+                    String groupingCode = content.getGroupingCode();
                     // trim the zeroes
 
-                    ClientGroup group = this.openGroups.get(pairCode);
+                    ClientGroup group = this.openGroups.get(groupingCode);
 
                     // find the open group in the hash map
                     // put the client into the group.
@@ -204,7 +188,7 @@ public class ConnectionHandler {
      * @param clientSession
      * @return 
      */
-    private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String pairingCode) {
+    private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String groupingCode) {
         
         if (this.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
             throw new IllegalStateException("Max open connections reached.");
@@ -216,7 +200,7 @@ public class ConnectionHandler {
         Client c = new Client(ClientType.PC, clientSession, group);
         group.giveClient(c);
         
-        this.openGroups.put(pairingCode, group);
+        this.openGroups.put(groupingCode, group);
         this.clientGroups.put(group.groupId, group);
         
         return new Tuple<Client, ClientGroup>(c, group);

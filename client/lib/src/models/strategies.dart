@@ -16,7 +16,7 @@ abstract class MessageReceivedStrategy {
 class PairCodeReceivedStrategy extends MessageReceivedStrategy {
   PairCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
     _actionsToComplete.add(_actions.pairCodeReceived);
-    _payloads[_actions.pairCodeReceived] = jsonData['content']['pairingCode'];
+    _payloads[_actions.pairCodeReceived] = jsonData['content']['groupingCode'];
   }
 }
 

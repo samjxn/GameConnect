@@ -12,6 +12,6 @@ package gameconnect.server;
 public class MessageType {
     public final static String OPEN_NEW_GROUP = "open-new-group";
     public final static String JOIN_GROUP = "join-group";
-    public final static String PAIR_CODE_RESPONSE = "pair-code-response";
+    public final static String GROUP_CODE_RESPONSE = "group-code-response";
     public final static String ERROR = "error";
 }
