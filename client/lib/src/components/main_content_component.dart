@@ -17,7 +17,7 @@ class _MainContentComponent
 
     //TODO:  Do something better than a switch statement
     switch (store.gameConnectClientStore.currentComponent) {
-      case 'pairingScreenComponent':
+      case 'groupingScreenComponent':
         currentComponent = pairingScreenComponent({'actions':actions, 'store':store});
         break;
       case 'levelSelectScreenComponent':
@@ -34,5 +34,5 @@ class _MainContentComponent
     return currentComponent;
   }
 
-  render() => react.div({'className': 'pairing-screen-container'}, getCurrentComponent());
+  render() => react.div({'className': 'main-content-container'}, getCurrentComponent());
 }

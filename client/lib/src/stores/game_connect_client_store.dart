@@ -22,6 +22,6 @@ class GameConnectClientStore extends flux.Store {
   }
 
   _onUserQuit(_){
-    _onSetComponent('pairingScreenComponent');
+    _onSetComponent('groupingScreenComponent');
   }
 }

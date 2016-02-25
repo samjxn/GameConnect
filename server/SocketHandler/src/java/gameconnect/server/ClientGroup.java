@@ -18,8 +18,8 @@ public class ClientGroup {
     
     String groupId;
 
-    ClientGroup() {
-        this.groupId = "";
+    ClientGroup(String id) {
+        this.groupId = id;
         this.clients = new ArrayList<>();
     }
     
@@ -43,7 +43,7 @@ public class ClientGroup {
         }
     }
     
-    void sendToAll(String msg){
+    public void sendToAll(String msg){
         if (msg == null) {
             throw new NullPointerException();
         }
@@ -61,7 +61,7 @@ public class ClientGroup {
      * @param msg
      * @param s 
      */
-    void sendToAll(String msg, Session s) {
+    public void sendToAll(String msg, Session s) {
         if (msg == null || s == null) {
             throw new NullPointerException();
         }

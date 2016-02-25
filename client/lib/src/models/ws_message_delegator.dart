@@ -22,8 +22,8 @@ class WebSocketMessageDelegator {
       return new DoNothingStrategy(_actions, jsonData);
     }
 
-    if (jsonData['content']['pairingCode'] != null){
-      return new PairCodeReceivedStrategy(_actions, jsonData);
+    if (jsonData['content']['groupingCode'] != null){
+      return new GroupCodeReceivedStrategy.GroupingCodeReceivedStrategy(_actions, jsonData);
     }
 
     return null;

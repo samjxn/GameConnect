@@ -8,8 +8,8 @@ class GameConnectClientActions {
 
   Action onSocketConnect = new Action();
   Action onQuit = new Action();
-  Action requestPairCode = new Action();
-  Action<String> pairCodeReceived = new Action<String>();
+  Action requestGroupCode = new Action();
+  Action<String> groupingCodeReceived = new Action<String>();
   Action<String> setCurrentComponent = new Action<String>();
 
 }
