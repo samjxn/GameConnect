@@ -1,6 +1,8 @@
 package gameconnect.server;
 
-import gameconnect.server.io.*;
+import gameconnect.server.io.MessageTypes.*;
+import gameconnect.server.io.SendStrategies.*;
+import gameconnect.server.io.MessageContentTypes.*;
 import gameconnect.server.MessageType;
 import gameconnect.server.SourceType;
 
