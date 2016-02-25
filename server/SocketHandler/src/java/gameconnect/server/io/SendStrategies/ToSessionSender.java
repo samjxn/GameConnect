@@ -3,25 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gameconnect.server.io;
+package gameconnect.server.io.SendStrategies;
 
-import gameconnect.server.Client;
 import java.io.IOException;
+import javax.websocket.Session;
 
 /**
  *
  * @author personal
  */
-public class ToGroupSender implements SendStrategy {
-    
-    private Client client;
-    
-    public ToGroupSender(Client c){
-        this.client = c;
-    }
+public class ToSessionSender implements SendStrategy {
 
+    private Session session;
+    
+    public ToSessionSender(Session s){
+        this.session = s;
+    }
+    
     @Override
     public void sendMessage(String messageJson) throws IOException {
-        this.client.getGroup().sendToAll(messageJson);
+        session.getBasicRemote().sendText(messageJson);
     }
+    
 }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gameconnect.server.io;
+package gameconnect.server.io.MessageContentTypes;
 
 /*  TODO:  This is a stub.  Redo this entirely.
  *         Different messages will require different message contents

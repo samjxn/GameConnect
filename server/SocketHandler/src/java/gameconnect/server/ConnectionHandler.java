@@ -1,8 +1,16 @@
 package gameconnect.server;
 
+import gameconnect.server.io.MessageTypes.OutgoingMessage;
+import gameconnect.server.io.MessageTypes.Message;
+import gameconnect.server.io.SendStrategies.SendStrategy;
+import gameconnect.server.io.SendStrategies.ToSessionSender;
+import gameconnect.server.io.SendStrategies.ToGroupSender;
+import gameconnect.server.io.SendStrategies.ToClientSender;
+import gameconnect.server.io.MessageContentTypes.GroupingCodeMessageContent;
+import gameconnect.server.io.MessageContentTypes.ErrorMessageContent;
+import gameconnect.server.io.MessageContentTypes.GroupingApprovedMessageContent;
 import gameconnect.server.MessageType;
 import gameconnect.server.SourceType;
-import gameconnect.server.io.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,6 +23,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 
 /**
  *
@@ -75,7 +84,6 @@ public class ConnectionHandler {
         Message incommingMessage;
         try {
             incommingMessage = gson.fromJson(messageJson, Message.class);
-
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             incommingMessage = new Message(null, null, null, null);
@@ -105,7 +113,7 @@ public class ConnectionHandler {
                 
                 sender = new ToClientSender(client);
                 response = new OutgoingMessage(group.groupId, SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE, 
-                        new GroupingCodeMessageContent(groupingCode), sender);
+                        new GroupingCodeMessageContent(groupingCode));
                 
                 } else{
               // Message already had a groupId or Message is not from PC_Client
@@ -114,15 +122,18 @@ public class ConnectionHandler {
                 
             case MessageType.JOIN_GROUP:
                 if (incommingMessage.getGroupId() == null && 
-                        incommingMessage.getSourceType().equals(SourceType.CONTROLLER) && 
-                        incommingMessage.getContent() != null){
+                        incommingMessage.getSourceType().equals(SourceType.CONTROLLER) /*&& 
+                        incommingMessage.getContent() != null*/){
                     // get the grouping code from the message
-                    GroupingCodeMessageContent content = (GroupingCodeMessageContent)incommingMessage.getContent();
+                    GroupingCodeMessage incommingGroupCodeMessage = gson.fromJson(messageJson, GroupingCodeMessage.class);
+                    
+                    GroupingCodeMessageContent content = incommingGroupCodeMessage.getContent();
                     String groupingCode = content.getGroupingCode();
                     // trim the zeroes
 
                     ClientGroup group = this.openGroups.get(groupingCode);
-
+                    
+                    
                     // find the open group in the hash map
                     // put the client into the group.
                     if (group != null){
@@ -135,11 +146,11 @@ public class ConnectionHandler {
                         // respond whether or not that worked.
                         sender = new ToGroupSender(controllerClient);
                         response = new OutgoingMessage(group.groupId, SourceType.BACKEND, 
-                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId), sender);
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
                     
                     } else {
                         sender = new ToSessionSender(session);
-                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Open Group did not exist"), sender);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Open Group did not exist"));
                     }
                     
                 }
@@ -153,11 +164,11 @@ public class ConnectionHandler {
             if (response == null){
                 sender = new ToSessionSender(session);
                 response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, 
-                        new ErrorMessageContent("Message not Recognized."), sender);
+                        new ErrorMessageContent("Message not Recognized."));
                 
             }
             
-            response.send();
+            response.send(gson, sender);
             
         } catch (IOException ex) {
             ex.printStackTrace();

@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gameconnect.server.io;
+package gameconnect.server.io.MessageTypes;
+
+import gameconnect.server.io.MessageContentTypes.MessageContent;
 
 /**
  *
@@ -14,9 +16,14 @@ public class Message {
     protected String groupId;
     private String sourceType;
     private String messageType;
-    private MessageContent content;
+//    private MessageContent content;
     
-    
+    public Message(String groupId, String sourceType, String messageType) {
+        this.groupId = groupId;
+        this.sourceType = sourceType;
+        this.messageType = messageType;
+//        this.content = null;
+    }
     /**
      * Creates a new message
      * @param groupId 
@@ -28,7 +35,7 @@ public class Message {
         this.groupId = groupId;
         this.sourceType = sourceType;
         this.messageType = messageType;
-        this.content = content;
+//        this.content = content;
     }
        
     public String getGroupId() {
@@ -43,7 +50,7 @@ public class Message {
         return this.messageType;
     }
     
-    public MessageContent getContent() {
-        return this.content;
-    }
+//    public MessageContent getContent() {
+//        return this.content;
+//    }
 }
