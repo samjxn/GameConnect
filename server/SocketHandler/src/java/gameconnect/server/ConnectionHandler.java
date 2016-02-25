@@ -1,14 +1,6 @@
 package gameconnect.server;
 
-import gameconnect.server.io.MessageTypes.OutgoingMessage;
-import gameconnect.server.io.MessageTypes.Message;
-import gameconnect.server.io.SendStrategies.SendStrategy;
-import gameconnect.server.io.SendStrategies.ToSessionSender;
-import gameconnect.server.io.SendStrategies.ToGroupSender;
-import gameconnect.server.io.SendStrategies.ToClientSender;
-import gameconnect.server.io.MessageContentTypes.GroupingCodeMessageContent;
-import gameconnect.server.io.MessageContentTypes.ErrorMessageContent;
-import gameconnect.server.io.MessageContentTypes.GroupingApprovedMessageContent;
+import gameconnect.server.io.*;
 import gameconnect.server.MessageType;
 import gameconnect.server.SourceType;
 
