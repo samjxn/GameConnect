@@ -1,0 +1,16 @@
+name: hello_world
+version: 0.0.0
+description: >
+  This is a simple dart project to test my ability in creating dart projects.
+  While I know some dart already, I am not totally familiar with setting up dart projects.
+  This project should display 'Hello World!' and allow for a user to change whom they are greeting
+author: Sam Jackson <samjxn@iastate.edu>
+
+
+dependencies:
+  react: ^0.8.7
+  sass: any
+  w_flux: 2.0.0
+  
+transformers:
+  - sass

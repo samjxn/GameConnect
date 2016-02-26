@@ -1,0 +1,40 @@
+
+body {
+  background-color:#696969;
+}
+
+.greeting {
+  font-family: sans-serif;
+  text-align: center;
+  font-size: 100px;
+  color:#fff;
+  text-shadow:#ccc 0 1px 0, #c9c9c9 0 2px 0,
+              #bbb 0 3px 0, #b9b9b9 0 4px 0,
+              #aaa 0 5px 0,rgba(0,0,0,.1) 0 6px 1px,
+              rgba(0,0,0,.1) 0 0 5px, rgba(0,0,0,.3) 0 1px 3px,
+              rgba(0,0,0,.15) 0 3px 5px, rgba(0,0,0,.2) 0 5px 10px,
+              rgba(0,0,0,.2) 0 10px 10px, rgba(0,0,0,.1) 0 20px 20px;
+}
+
+.user-input-form-wrapper {
+  width: 50%;
+  margin: 0 auto;
+  padding: 10px;
+  position: relative;
+
+  .user-input-form {
+    margin: 0 auto;
+    height: 100px;
+    width: 100%;
+    border-color: white;
+    position: relative;
+    font-size: 50px;
+    text-align: center;
+    background-color: transparent;
+  }
+}
+
+.chat-message {
+  color: white;
+  font-family: sans-serif;
+}

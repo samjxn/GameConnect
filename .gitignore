@@ -1,5 +1,67 @@
 *.DS_STORE
+*.class
+*my_little_pony*
 
+# Eclipse Ignore Stuff
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+
+# Eclipse Core
+.project
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# PyDev specific (Python IDE for Eclipse)
+*.pydevproject
+
+# CDT-specific (C/C++ Development Tooling)
+.cproject
+
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
+# Java annotation processor (APT)
+.factorypath
+
+# PDT-specific (PHP Development Tools)
+.buildpath
+
+# sbteclipse plugin
+.target
+
+# Tern plugin
+.tern-project
+
+# TeXlipse plugin
+.texlipse
+
+# STS (Spring Tool Suite)
+.springBeans
+
+# Code Recommenders
+.recommenders/
+
+# End Eclipse ignore stuff
+/server/SocketHandler/nbproject/private/
+/server/SocketHandler/build/
+/server/SocketHandler/dist/
+project.xml
+genfiles.properties
+>>>>>>> 46cb936fe368158d8b2a2180b8c258693ef8f547
+
+# Cordova Generated Files
 /controller/controller/platforms
 /controller/controller/plugins
 /controller/controller/hooks

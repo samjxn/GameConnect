@@ -1,0 +1,19 @@
+name: client
+version: 0.0.1
+description: >
+  Game Controller Client
+  TODO:  Add description.
+
+author: Sam Jackson <samjxn@iastate.edu>
+
+
+dependencies:
+  react: ^0.8.7
+  sass: any
+  w_flux: 2.0.0
+  three:
+      git: git://github.com/threeDart/three.dart.git
+      version: '>=0.2.5+1 <0.3.0'
+  
+transformers:
+  - sass
