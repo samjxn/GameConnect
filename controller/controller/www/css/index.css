@@ -1,0 +1,182 @@
+/* ---------- GENERAL ---------- */
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+body {
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+    -webkit-user-select: none;
+    background-color:#000000;
+    background-image:linear-gradient(top, #000000 0%, #000000 51%);
+    background-image:-webkit-linear-gradient(top, #000000 0%, #000000 51%);
+    background-image:-ms-linear-gradient(top, #000000 0%, #000000 51%);
+    background-image:-webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #000000),
+        color-stop(0.51, #000000)
+    );
+    background-attachment:fixed;
+    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    font-size:12px;
+    height:100%;
+    margin:0px;
+    padding:0px;
+    text-transform:uppercase;
+    width:100%;
+}
+
+/* Portrait layout (default) */
+.app {
+    position: absolute;             /* position in the center of the screen */
+    left: 50%;
+    height: 50px;                   /* text area height */
+    width: 225px;                   /* text area width */
+    text-align: center;
+    padding: 180px 0px 0px 0px;
+    margin: -115px 0px 0px -112px;
+}
+
+/* Landscape layout */
+@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
+    .app {
+        background-position:left center;
+        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
+        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
+                                      /* offset horizontal: half of image width and text area width */
+    }
+}
+
+h1 {
+    font-size:42px;
+    font-weight:normal;
+    color: #FFFFFF;
+    margin:0px;
+    overflow:visible;
+    padding:0px;
+    text-align:center;
+}
+
+input[type=number], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type=text], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* ---------- HOME VIEW ---------- */
+#pairButton {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 20px 20px;
+  font-size:18px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#pairButton:disabled {
+  background-color: #a5d7a7;
+}
+
+#debugButton {
+  position: relative;
+  margin-top: 40%;
+}
+
+/* ---------- DEBUG VIEW ---------- */
+
+#testButton {
+  position: relative;
+  margin-top: 10%;
+}
+
+#debugInput {
+  position: relative;
+  margin-top: 20%;
+}
+
+#accelerometer {
+  position: relative;
+  margin-top: 40%;
+  margin-bottom: 20%;
+  text-align: center;
+  font-size: 14px;
+  color: #FFFFFF;
+}
+
+#message {
+  position: relative;
+  margin-top: 45%;
+  text-align: center;
+  font-size: 12px;
+  color: #FFFFFF;
+}
+
+/* ---------- CLASS STYLES ---------- */
+
+.button {
+    background-color: #980000;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.event {
+    border-radius:4px;
+    -webkit-border-radius:4px;
+    color:#FFFFFF;
+    font-size:12px;
+    margin:0px 30px;
+    padding:2px 0px;
+}
+
+.event.listening {
+    background-color:#333333;
+    display:block;
+}
+
+.event.received {
+    background-color:#4B946A;
+    display:none;
+}
+
+@keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+
+@-webkit-keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+
+.blink {
+    animation:fade 1500ms infinite;
+    -webkit-animation:fade 1500ms infinite;
+}
