@@ -59,7 +59,6 @@ local.properties
 /server/SocketHandler/dist/
 project.xml
 genfiles.properties
->>>>>>> 46cb936fe368158d8b2a2180b8c258693ef8f547
 
 # Cordova Generated Files
 /controller/controller/platforms
