@@ -1,18 +1,36 @@
 (function () {
 
     /* ---------------------------------- Local Variables ---------------------------------- */
-    var viewStack = new Array();      // stack for back button behavior
+
+    var viewStack;                    // stack for back button behavior
+    var currentView;                  // track what view is rendered
     var webSocket;                    // websocket connection
-    var watchID;                      // used by accelerometer
-    var pollingAcc = false;           // boolean to track accelerometer
+    var groupId;                      // assigned by server
+    var clientId;                     // assigned by server
+    var watchId;                      // used by accelerometer
+
+    /* ---------------------------------- Game Data ---------------------------------- */
+
+    var pollingAcc;                   // boolean to track accelerometer
+    var accData;                      // object to track acceleration data changes
 
     /* --------------------------------- Device Ready -------------------------------- */
-    document.addEventListener('deviceready', function () {
+    document.addEventListener('deviceready', init, false);
+
+    function init() {
+
+      // Clear global variables
+      viewStack = new Array();
+      currentView = undefined;
+      webSocket = undefined;
+      groupId = undefined;
+      clientId = undefined;
+      watchId = undefined;
+      pollingAcc = false;
 
       // Add event listeners and render the home view
       console.log('Device is ready');
       document.addEventListener("backbutton", onBackKeyDown, false);
-      console.log('Rendering home view');
       renderHomeView();
 
       // Ensure only one connection is open at a time
@@ -22,11 +40,11 @@
       }
 
       // Create a new instance of the websocket
-      webSocket = new WebSocket("ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/test/chat");
+      webSocket = new WebSocket("ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect");
 
       // When the websocket is opened
       webSocket.onopen = function(event){
-        console.log('WebSocket connection opened at ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/test/chat');
+        console.log('WebSocket connection opened at ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect');
         if(event.data === undefined) {
           return;
         }
@@ -34,34 +52,42 @@
 
       // When a message is read from the websocket
       webSocket.onmessage = function(event) {
-        console.log('Message received from WebSocket');
-        switch(event.code) {
-          case 1:
-            // do something
+        console.log('Message received from server:');
+        console.log('%c' + event.data, 'color: #4CAF50');
+        var data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (e) {
+          return;
+        }
+
+        switch(data.messageType) {
+          case "join-group":
+            joinGroup(data);
             break;
-          case 2:
-            // do something
+          case "game-list":
+            gameList(data);
             break;
-          case 3:
-            // do something
+          case "game-config":
+            gameConfig(data);
             break;
-          case 4:
-            // do something
+          case "exit":
+            reset();
             break;
-          case 5:
-            // do something
-            break;
+          default:
+            console.log("Message type not recognized");
+            console.log(event);
         }
       };
 
       // When the websocket is closed
       webSocket.onclose = function(event){
         console.log('WebSocket closed, resetting application');
-        renderHomeView();
-        stopAcc();
+        reset();
       };
 
-    }, false);
+    }
+
 
     /* ---------------------------------- Local Functions ---------------------------------- */
 
@@ -70,17 +96,23 @@
       renderHomeView();
     }
 
+    // Reset controller
+    function reset() {
+      stopAcc();
+      init();
+    }
+
     // Check pairing input field any time the value changes
     function checkPairingCode() {
-      if(document.getElementById('codeInput').value.length == 0) {
+      if(document.getElementById('pairInput').value.length == 0) {
         document.getElementById('pairButton').disabled = true;
         document.getElementById('message').innerHTML = "Start Typing";
         document.getElementById('message').style.color = '#FFFFFF';
-      } else if(document.getElementById('codeInput').value.length == 5) {
+      } else if(document.getElementById('pairInput').value.length == 5) {
         document.getElementById('pairButton').disabled = false;
         document.getElementById('message').innerHTML = "Ready to Pair";
         document.getElementById('message').style.color = '#4CAF50';
-      } else if(document.getElementById('codeInput').value.length > 5) {
+      } else if(document.getElementById('pairInput').value.length > 5) {
         document.getElementById('pairButton').disabled = true;
         document.getElementById('message').innerHTML = "Whoops, too long";
         document.getElementById('message').style.color = '#FFFFFF';
@@ -98,56 +130,179 @@
       document.getElementById('message').className = "blink";
       document.getElementById('pairButton').disabled = true;
       document.getElementById('pairButton').className = "blink";
-      document.getElementById('codeInput').disabled = true;
-      console.log('sending pairing code');
-      webSocket.send(document.getElementById('codeInput').value);
+      document.getElementById('pairInput').disabled = true;
+
+      // Send the pairing code
+      var codeString = parseInt(document.getElementById('pairInput').value, 10).toString();
+      console.log("Pairing code is " + codeString);
+      var data = {"groupId": null,
+                    "sourceType" : "controller",
+                    "messageType" : "join-group",
+                    "content" :
+                    {
+                      "groupingCode" : codeString
+                    }
+      }
+      console.log("Sending data to server:");
+      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+      webSocket.send(JSON.stringify(data));
     }
 
-    // Test event for debug page - writes input to the websocket
+    // Test event for debug page
     function testEvent() {
-      console.log('sending message to the websocket');
-      webSocket.send(document.getElementById('debugInput').value);
+      var text = document.getElementById('debugInput').value;
+      console.log("Sending message to server:");
+      console.log('%c' + text, 'color: #0080FF');
+      webSocket.send(text);
       document.getElementById('debugInput').value = "";
     }
+
+    /* ---------------------------------- Accelerometer Data ---------------------------------- */
 
     // Toggle acceleration tracking
     function toggleAcc() {
       if (pollingAcc === false) {
-        var options = { frequency: 100 };  // Update every .1 seconds
-        watchID = navigator.accelerometer.watchAcceleration(accSuccess, accError, options);
+
+        // Initialize acceleration data
+        accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
+
+        var options = { frequency: 200 };  // Update every .2 seconds
+        watchId = navigator.accelerometer.watchAcceleration(accSuccess, accError, options);
         pollingAcc = true;
+
+        console.log("Started tracking accelerometer data");
       }
       else {
-        navigator.accelerometer.clearWatch(watchID);
+        navigator.accelerometer.clearWatch(watchId);
         pollingAcc = false;
+        console.log("Stopped tracking accelerometer data");
       }
     }
 
+    // Stop acceleration tracking
     function stopAcc() {
       if (pollingAcc === true) {
-        navigator.accelerometer.clearWatch(watchID);
+        navigator.accelerometer.clearWatch(watchId);
         pollingAcc = false;
+        console.log("Stopped tracking accelerometer data");
       }
-    }
-
-    // Configure gameplay controls
-    function gameConfig(object) {
-
     }
 
     // Success callback for getting acceleration
     function accSuccess(acceleration) {
-    var html =
-      "<p> Acc X: " + acceleration.x + "<br>" +
-      "<p> Acc Y: " + acceleration.y + "<br>" +
-      "<p> Acc Z: " + acceleration.z + "<br>" +
-      "<p> Time: " + acceleration.timestamp + "<br>";
-      document.getElementById('accelerometer').innerHTML = html;
+
+      // Update values
+      accData.x.unshift(acceleration.x);      // add to front of array
+      accData.y.unshift(acceleration.y);
+      accData.z.unshift(acceleration.z);
+      accData.x.pop();                        // remove last item of array
+      accData.y.pop();
+      accData.z.pop();
+
+      if(currentView === "debug") {
+        var html =
+          "<p> Acc X: " + acceleration.x + "<br>" +
+          "<p> Acc Y: " + acceleration.y + "<br>" +
+          "<p> Acc Z: " + acceleration.z + "<br>" +
+          "<p> Time: " + acceleration.timestamp + "<br>";
+          document.getElementById('accelerometer').innerHTML = html;
+
+          // Configuration object
+          config = {
+            xHigh: false,      // left tilt
+            xLow: false,      // right tilt
+            yHigh: true,     // up tilt
+            yLow: false,      // down tilt
+            zHigh: false,
+            zLow: false
+          };
+
+          reportAccSpike(config);
+          //reportAccTilt();
+
+      } else if(currentView === "game") {
+        // do something
+      }
+
     }
 
     // Error callback for getting acceleration
     function accError() {
-      console.log('error checking accelerometer data');
+      console.log('Error checking accelerometer data');
+    }
+
+    // Watch for spikes in acceleration
+    function reportAccSpike(config) {
+      var xDif = accData.x[0] - accData.x[1];
+      if(config.xHigh && xDif > 5) {
+        console.log("Acc X High Event");
+      } else if(config.xLow && xDif < -5) {
+        console.log("Acc X Low Event");
+      }
+
+      var yDif = accData.y[0] - accData.y[1];
+      if(config.yHigh && yDif > 5 && accData.x[0] < 4) {
+        console.log("Acc Y High Event");
+      } else if(config.yLow && yDif < -5) {
+        console.log("Acc Y Low Event");
+      }
+
+      var zDif = accData.z[0] - accData.z[1];
+      if(config.zHigh && zDif > 5) {
+        console.log("Acc Z High Event");
+      } else if(config.zLow && zDif < -5) {
+        console.log("Acc Z Low Event");
+      }
+    }
+
+    // Watch for device tilt (steering wheel)
+    function reportAccTilt() {
+      var average = (accData.y[0] + accData.y[1] + accData.y[2])/3;
+      if(average > 1) {
+        console.log("Right: (" + Math.round(average) + ")");
+      } else if (average < -1){
+        console.log("Left: (" + Math.round(Math.abs(average)) + ")");
+      } else {
+        console.log("Straight");
+      }
+    }
+
+    /* ---------------------------------- WebSocket Response Handlers ---------------------------------- */
+
+    // After receiving a Join Group messsage from the server
+    function joinGroup(data) {
+      if(data.content.groupingApproved === true) {
+        console.log("Successfully joined group " + data.groupId);
+        groupId = data.groupId;
+        clientId = data.content.clientId;
+        document.getElementById('message').innerHTML = "Success";
+        document.getElementById('pairButton').className = "button";
+        document.getElementById('message').style.color = '##4CAF50';
+      } else {
+        console.log("Failed to join group");
+        document.getElementById('message').innerHTML = "Failed to Join Group";
+        document.getElementById('pairButton').className = "button";
+        document.getElementById('message').style.color = '#DC0000';
+        document.getElementById('pairInput').value = "";
+      }
+    }
+
+    function gameList(data) {
+      if(data.success === true) {
+        console.log("Recieved list of games");
+        renderGameSelectView();
+      } else {
+        // panic
+      }
+    }
+
+    function gameConfig(data) {
+      if(data.success === true) {
+        console.log("Recieved game configuration details");
+        renderGameView();
+      } else {
+        // panic
+      }
     }
 
     /* ---------------------------------- Rendering Views ---------------------------------- */
@@ -157,15 +312,16 @@
       var html =
         "<h1>Pair With Computer</h1>" +
         "<div id='message'>Start Typing</div>" +
-        "<input type='number' placeholder='Enter the Code on Your Screen' id='codeInput'><br>" +
+        "<input type='number' placeholder='Enter the Code on Your Screen' id='pairInput'><br>" +
         "<button type='button' class='button' id='pairButton' disabled>Pair</button>" +
         "<button type='button' class='button' id='debugButton'>Debug Mode</button>";
       document.getElementById('application').innerHTML = html;
       document.getElementById('debugButton').onclick = renderDebugView;
       document.getElementById('pairButton').onclick = pairRequest;
-      document.getElementById('codeInput').oninput = checkPairingCode;
+      document.getElementById('pairInput').oninput = checkPairingCode;
       stopAcc();
-      console.log('home view successfully rendered');
+      currentView = "home";
+      console.log('Home view rendered');
     }
 
     // Render the Debug View
@@ -179,7 +335,8 @@
       document.getElementById('application').innerHTML = html;
       document.getElementById('testButton').onclick = testEvent;
       document.getElementById('accButton').onclick = toggleAcc;
-      console.log('debug view successfully rendered');
+      currentView = "debug";
+      console.log('Debug view rendered');
     }
 
     // Render the Game Select View
@@ -187,13 +344,17 @@
       var html =
         "<h1>Select a Game</h1>";
       document.getElementById('application').innerHTML = html;
+      currentView = "select";
+      console.log('Game Select view rendered');
     }
 
     // Render a Game
     function renderGameView() {
-      var object = ""; //whatever the backend sends us
-      var html = ""; // parse the object for html
+      var html =
+        "<h1>Game</h1>";
       document.getElementById('application').innerHTML = html;
+      currentView = "game";
+      console.log('Game view rendered');
     }
 
 }());
