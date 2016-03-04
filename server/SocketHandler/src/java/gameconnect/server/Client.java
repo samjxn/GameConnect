@@ -9,10 +9,11 @@ import javax.websocket.Session;
 public class Client {
     
     // TODO:  give client ids
-    
+    private static Integer clientCount = 0;
     protected Session session;
     protected final ClientType clientType;
     protected ClientGroup clientGrouping;
+    protected String clientId;
     
     /**
      * 
@@ -21,9 +22,12 @@ public class Client {
      * @param group 
      */
     public Client(ClientType type, Session session, ClientGroup group) {
+        Client.clientCount++;
+
         this.clientType = type;
         this.session = session;
         this.clientGrouping = group;
+        this.clientId = Client.clientCount.toString();
     }
     
     public void sendText(String msg) throws java.io.IOException {
@@ -32,6 +36,10 @@ public class Client {
     
     public ClientGroup getGroup() {
         return this.clientGrouping;
+    }
+    
+    public String getId() {
+        return this.clientId;
     }
     
 }

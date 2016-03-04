@@ -15,7 +15,8 @@ package gameconnect.server.io.MessageContentTypes;
 /**
  *
  * @author Sam Jackson
+ * @author David Boschwitz
  */
-public class MessageContent {
+public abstract class MessageContent {
     
 }
