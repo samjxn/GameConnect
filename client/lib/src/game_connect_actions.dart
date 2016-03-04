@@ -12,4 +12,6 @@ class GameConnectClientActions {
   Action<String> groupingCodeReceived = new Action<String>();
   Action<String> setCurrentComponent = new Action<String>();
 
+  Action<String> onChatMessageReceived = new Action<String>();
+
 }

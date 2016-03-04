@@ -51,13 +51,13 @@ public class ConnectionHandler {
      * Maps matching client ids to Client objects
      */
     protected static HashMap<String, Client> clientMap = null;
-    
+
     private final int MAX_OPEN_CONNECTIONS = 100000;
         
     public ConnectionHandler() {
         if (ConnectionHandler.gson == null) {
             ConnectionHandler.gson = new GsonBuilder().create();
-        }        
+        }
         if (openGroups == null) {
             ConnectionHandler.openGroups = new HashMap<>();
         }
@@ -73,7 +73,7 @@ public class ConnectionHandler {
      * The session class allows us to send data to the user.
      * In the method onOpen, we'll let the user know that the handshake was 
      * successful.
-     * 
+     *
      * @param session
      */
     @OnOpen
@@ -89,7 +89,7 @@ public class ConnectionHandler {
     /**
      * When a user sends a message to the server, this method will intercept the message
      * and allow us to react to it. For now the message is read as a String.
-     * 
+     *
      * @param messageJson
      * @param session
      */
@@ -219,7 +219,7 @@ public class ConnectionHandler {
         if (ConnectionHandler.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
             throw new IllegalStateException("Max open connections reached.");
         }
-        
+
         
         ClientGroup group = new ClientGroup();
         Client client = new Client(ClientType.PC, clientSession, group);
