@@ -59,3 +59,9 @@ local.properties
 /server/SocketHandler/dist/
 project.xml
 genfiles.properties
+
+# Cordova Generated Files
+/controller/controller/platforms
+/controller/controller/plugins
+/controller/controller/hooks
+/server/SocketHandler/nbproject/project.properties

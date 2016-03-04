@@ -26,7 +26,7 @@ import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 @ServerEndpoint("/gameconnect")
 public class ConnectionHandler {
     
-    private Gson gson;
+    private static Gson gson;
     
     /**
      * Maps 5-digit grouping code to groups
@@ -40,8 +40,8 @@ public class ConnectionHandler {
     
     private final int MAX_OPEN_CONNECTIONS = 100000;
         
-    public ConnectionHandler() {
-        this.gson = new GsonBuilder().create();
+    static {
+        gson = new GsonBuilder().create();
         
         if (openGroups == null) {
             ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
@@ -98,7 +98,7 @@ public class ConnectionHandler {
                 if (incommingMessage.getGroupId() == null &&
                         incommingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
                 
-                String groupingCode = Integer.toString(this.openGroups.size());
+                String groupingCode = Integer.toString(openGroups.size());
                
                 Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, groupingCode);
                 
@@ -125,7 +125,7 @@ public class ConnectionHandler {
                     String groupingCode = content.getGroupingCode();
                     // trim the zeroes
 
-                    ClientGroup group = this.openGroups.get(groupingCode);
+                    ClientGroup group = openGroups.get(groupingCode);
                     
                     
                     // find the open group in the hash map
@@ -195,18 +195,18 @@ public class ConnectionHandler {
      */
     private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String groupingCode) {
         
-        if (this.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
+        if (openGroups.size() >= MAX_OPEN_CONNECTIONS) {
             throw new IllegalStateException("Max open connections reached.");
         }
         
-        String groupId = Integer.toString(this.clientGroups.size());
+        String groupId = Integer.toString(clientGroups.size());
         
         ClientGroup group = new ClientGroup(groupId);
         Client c = new Client(ClientType.PC, clientSession, group);
         group.giveClient(c);
         
-        this.openGroups.put(groupingCode, group);
-        this.clientGroups.put(group.groupId, group);
+        openGroups.put(groupingCode, group);
+        clientGroups.put(group.groupId, group);
         
         return new Tuple<Client, ClientGroup>(c, group);
     }
