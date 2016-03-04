@@ -30,12 +30,12 @@ import gameconnect.server.io.SendStrategies.ToSessionSender;
 
 /**
  *
- * @author davidboschwitz
+ * @author david boschwitz, sam jackson
  */
 @ServerEndpoint("/gameconnect")
 public class ConnectionHandler {
     
-    private Gson gson;
+    private static Gson gson;
     
     /**
      * Maps 5-digit grouping code to groups
@@ -47,16 +47,24 @@ public class ConnectionHandler {
      */
     protected static HashMap<String, ClientGroup> clientGroups = null;
     
+    /**
+     * Maps matching client ids to Client objects
+     */
+    protected static HashMap<String, Client> clientMap = null;
+    
     private final int MAX_OPEN_CONNECTIONS = 100000;
         
     public ConnectionHandler() {
-        this.gson = new GsonBuilder().create();
-        
+        if (ConnectionHandler.gson == null) {
+            ConnectionHandler.gson = new GsonBuilder().create();
+        }        
         if (openGroups == null) {
-            ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
+            ConnectionHandler.openGroups = new HashMap<>();
         }
         if (clientGroups == null) {
-            ConnectionHandler.clientGroups = new HashMap<String, ClientGroup>();
+            ConnectionHandler.clientGroups = new HashMap<>();
+        } if (clientMap == null) {
+            ConnectionHandler.clientMap = new HashMap<>();
         }
     }
     
@@ -65,6 +73,8 @@ public class ConnectionHandler {
      * The session class allows us to send data to the user.
      * In the method onOpen, we'll let the user know that the handshake was 
      * successful.
+     * 
+     * @param session
      */
     @OnOpen
     public void onOpen(Session session){
@@ -79,11 +89,13 @@ public class ConnectionHandler {
     /**
      * When a user sends a message to the server, this method will intercept the message
      * and allow us to react to it. For now the message is read as a String.
+     * 
+     * @param messageJson
+     * @param session
      */
     @OnMessage
     public void onMessage(String messageJson, Session session){      
         println("Message from " + session.getId() + ": " + messageJson);
-
         Message incommingMessage;
         try {
             incommingMessage = gson.fromJson(messageJson, Message.class);
@@ -107,7 +119,7 @@ public class ConnectionHandler {
                 if (incommingMessage.getGroupId() == null &&
                         incommingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
                 
-                String groupingCode = Integer.toString(this.openGroups.size());
+                String groupingCode = Integer.toString(ConnectionHandler.openGroups.size());
                
                 Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, groupingCode);
                 
@@ -132,24 +144,23 @@ public class ConnectionHandler {
                     
                     GroupingCodeMessageContent content = incommingGroupCodeMessage.getContent();
                     String groupingCode = content.getGroupingCode();
-                    // trim the zeroes
 
-                    ClientGroup group = this.openGroups.get(groupingCode);
+                    ClientGroup group = ConnectionHandler.openGroups.get(groupingCode);
                     
                     
                     // find the open group in the hash map
                     // put the client into the group.
                     if (group != null){
                         Client controllerClient = new Client(ClientType.MOBILE, session, group);
-                        String clientId = ""; // TODO:  Remove when clients have ids
                         
                         group.giveClient(controllerClient);
                         
                         //TODO:  Change message content
                         // respond whether or not that worked.
-                        sender = new ToClientSender(controllerClient);
+                        println("Grouping approved.  Making message.");
+                        sender = new ToGroupSender(controllerClient);
                         response = new OutgoingMessage(group.groupId, SourceType.BACKEND, 
-                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, controllerClient.getId()));
                     
                     } else {
                         sender = new ToSessionSender(session);
@@ -182,6 +193,7 @@ public class ConnectionHandler {
      * The user closes the connection.
      * 
      * Note: you can't send messages to the client from this method
+     * @param session
      */
     @OnClose
     public void onClose(Session session){
@@ -204,20 +216,19 @@ public class ConnectionHandler {
      */
     private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String groupingCode) {
         
-        if (this.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
+        if (ConnectionHandler.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
             throw new IllegalStateException("Max open connections reached.");
         }
         
-        String groupId = Integer.toString(this.clientGroups.size());
         
-        ClientGroup group = new ClientGroup(groupId);
-        Client c = new Client(ClientType.PC, clientSession, group);
-        group.giveClient(c);
+        ClientGroup group = new ClientGroup();
+        Client client = new Client(ClientType.PC, clientSession, group);
+        group.giveClient(client);
         
-        this.openGroups.put(groupingCode, group);
-        this.clientGroups.put(group.groupId, group);
-        
-        return new Tuple<Client, ClientGroup>(c, group);
+        ConnectionHandler.openGroups.put(groupingCode, group);
+        ConnectionHandler.clientGroups.put(group.groupId, group);
+        ConnectionHandler.clientMap.put(client.getId(), client);
+        return new Tuple<>(client, group);
     }
     
     private class Tuple<S, T> {

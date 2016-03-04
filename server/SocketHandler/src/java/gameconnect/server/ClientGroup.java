@@ -14,23 +14,17 @@ import javax.websocket.Session;
  * @author davidboschwitz
  */
 public class ClientGroup {
-    List<Client> clients;
     
+    private static Integer clientGroupCount = 0;
+    
+    List<Client> clients;
     String groupId;
 
-    ClientGroup(String id) {
-        this.groupId = id;
-        this.clients = new ArrayList<>();
-    }
-    
-    ClientGroup(Client openingClient, String groupId) {
-        if (openingClient == null || groupId == null) {
-            throw new NullPointerException();
-        }
+    ClientGroup() {
+        ClientGroup.clientGroupCount++;
         
-        this.groupId = groupId;
+        this.groupId = ClientGroup.clientGroupCount.toString();
         this.clients = new ArrayList<>();
-        clients.add(openingClient);
     }
     
     void giveClient(Client c) {
@@ -51,6 +45,8 @@ public class ClientGroup {
         for (Client c : this.clients) {
             try {
                 c.session.getBasicRemote().sendText(msg);
+                System.out.println("Sent message to " + c.session.getId());
+                System.out.println(msg);
             } catch(IOException e){
                 e.printStackTrace();
             } catch (IllegalStateException e) {
