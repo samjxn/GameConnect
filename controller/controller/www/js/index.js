@@ -2,7 +2,6 @@
 
     /* ---------------------------------- Local Variables ---------------------------------- */
 
-    var viewStack;                    // stack for back button behavior
     var currentView;                  // track what view is rendered
     var webSocket;                    // websocket connection
     var groupId;                      // assigned by server
@@ -12,7 +11,9 @@
     /* ---------------------------------- Game Data ---------------------------------- */
 
     var pollingAcc;                   // boolean to track accelerometer
+    var accCounter;                   // track how long we've been polling
     var accData;                      // object to track acceleration data changes
+    var calibrationFactor;            // calibrate acceleration on startup
 
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', init, false);
@@ -71,6 +72,9 @@
           case "game-config":
             gameConfig(data);
             break;
+          case "error":
+            serverError(data);
+            break;
           case "exit":
             reset();
             break;
@@ -88,18 +92,26 @@
 
     }
 
-
     /* ---------------------------------- Local Functions ---------------------------------- */
 
     // Back Key Press Event Handler
     function onBackKeyDown() {
-      renderHomeView();
-    }
-
-    // Reset controller
-    function reset() {
-      stopAcc();
-      init();
+      switch(currentView) {
+        case "home":
+          navigator.app.exitApp();
+          break;
+        case "debug":
+          renderHomeView();
+          break;
+        case "select":
+          renderHomeView();
+          break;
+        case "game":
+          renderGameSelectView();
+          break;
+        default:
+          navigator.app.exitApp();
+      }
     }
 
     // Check pairing input field any time the value changes
@@ -132,7 +144,7 @@
       document.getElementById('pairButton').className = "blink";
       document.getElementById('pairInput').disabled = true;
 
-      // Send the pairing code
+      // Send the pairing code as JSON object
       var codeString = parseInt(document.getElementById('pairInput').value, 10).toString();
       console.log("Pairing code is " + codeString);
       var data = {"groupId": null,
@@ -151,9 +163,17 @@
     // Test event for debug page
     function testEvent() {
       var text = document.getElementById('debugInput').value;
+      var data = {"groupId": null,
+                    "sourceType" : "controller",
+                    "messageType" : "chat-message",
+                    "content" :
+                    {
+                      "messageText" : text
+                    }
+      }
       console.log("Sending message to server:");
-      console.log('%c' + text, 'color: #0080FF');
-      webSocket.send(text);
+      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+      webSocket.send(JSON.stringify(data));
       document.getElementById('debugInput').value = "";
     }
 
@@ -164,8 +184,11 @@
       if (pollingAcc === false) {
 
         // Initialize acceleration data
+        accCounter = 0;
+        calibrationFactor = {x: 0, y: 0, z: 0};
         accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
 
+        // Start acceleration polling
         var options = { frequency: 200 };  // Update every .2 seconds
         watchId = navigator.accelerometer.watchAcceleration(accSuccess, accError, options);
         pollingAcc = true;
@@ -173,9 +196,7 @@
         console.log("Started tracking accelerometer data");
       }
       else {
-        navigator.accelerometer.clearWatch(watchId);
-        pollingAcc = false;
-        console.log("Stopped tracking accelerometer data");
+        stopAcc();
       }
     }
 
@@ -200,25 +221,30 @@
       accData.z.pop();
 
       if(currentView === "debug") {
-        var html =
-          "<p> Acc X: " + acceleration.x + "<br>" +
-          "<p> Acc Y: " + acceleration.y + "<br>" +
-          "<p> Acc Z: " + acceleration.z + "<br>" +
-          "<p> Time: " + acceleration.timestamp + "<br>";
+        if (accCounter === 5) {
+          calibrationFactor.x = (accData.x[0] + accData.x[1] + accData.x[2] + accData.x[3] + accData.x[4]) / 5;
+          calibrationFactor.y = (accData.y[0] + accData.y[1] + accData.y[2] + accData.y[3] + accData.y[4]) / 5;
+          calibrationFactor.z = (accData.z[0] + accData.z[1] + accData.z[2] + accData.z[3] + accData.z[4]) / 5;
+          accCounter = 6;
+        } else if (accCounter < 5) {
+          var html =
+            "<p> Acc X: calibrating... <br>" +
+            "<p> Acc Y: calibrating... <br>" +
+            "<p> Acc Z: calibrating... <br>" +
+            "<p> Time: " + acceleration.timestamp + "<br>";
           document.getElementById('accelerometer').innerHTML = html;
+          accCounter = accCounter + 1;
+        } else {
+          var html =
+            "<p> Acc X: " + acceleration.x + "<br>" +
+            "<p> Acc Y: " + acceleration.y + "<br>" +
+            "<p> Acc Z: " + acceleration.z + "<br>" +
+            "<p> Time: " + acceleration.timestamp + "<br>";
+            document.getElementById('accelerometer').innerHTML = html;
+        }
 
-          // Configuration object
-          config = {
-            xHigh: false,      // left tilt
-            xLow: false,      // right tilt
-            yHigh: true,     // up tilt
-            yLow: false,      // down tilt
-            zHigh: false,
-            zLow: false
-          };
-
-          reportAccSpike(config);
-          //reportAccTilt();
+          //modeWiiRemote();
+          modeSteeringWheel();
 
       } else if(currentView === "game") {
         // do something
@@ -231,39 +257,60 @@
       console.log('Error checking accelerometer data');
     }
 
-    // Watch for spikes in acceleration
-    function reportAccSpike(config) {
-      var xDif = accData.x[0] - accData.x[1];
-      if(config.xHigh && xDif > 5) {
-        console.log("Acc X High Event");
-      } else if(config.xLow && xDif < -5) {
-        console.log("Acc X Low Event");
-      }
+    // Report spikes in acceleration
+    function modeWiiRemote() {
+      if (accCounter > 5) {
+        var changeX = accData.x[0] - accData.x[1];
+        var changeY = accData.y[0] - accData.y[1];
 
-      var yDif = accData.y[0] - accData.y[1];
-      if(config.yHigh && yDif > 5 && accData.x[0] < 4) {
-        console.log("Acc Y High Event");
-      } else if(config.yLow && yDif < -5) {
-        console.log("Acc Y Low Event");
-      }
+        var xDif = accData.x[0] - calibrationFactor.x;
+        var yDif = accData.y[0] - calibrationFactor.y;
 
-      var zDif = accData.z[0] - accData.z[1];
-      if(config.zHigh && zDif > 5) {
-        console.log("Acc Z High Event");
-      } else if(config.zLow && zDif < -5) {
-        console.log("Acc Z Low Event");
+        var reportX = true;
+        var reportY = true;
+
+        if (Math.abs(changeX) > 6 && Math.abs(changeY) > 6) {
+          if (Math.abs(changeX) > Math.abs(changeY)) {
+            reportX = true;
+            reportY = false;
+          } else {
+            reportX = false;
+            reportY = true;
+          }
+        }
+
+        if(reportX && xDif > 4 && changeX > 6) {
+          console.log("Left");
+        } else if(xDif < -4 && changeX < -6) {
+          console.log("Right");
+        }
+
+        if(reportY && yDif > 4 && changeY > 6) {
+          console.log("Up");
+        } else if(yDif < -4 && changeY < -6) {
+          console.log("Down");
+        }
+      } else {
+        console.log("Calibrating device, please wait...");
       }
     }
 
-    // Watch for device tilt (steering wheel)
-    function reportAccTilt() {
-      var average = (accData.y[0] + accData.y[1] + accData.y[2])/3;
-      if(average > 1) {
-        console.log("Right: (" + Math.round(average) + ")");
-      } else if (average < -1){
-        console.log("Left: (" + Math.round(Math.abs(average)) + ")");
+    // Report device tilt
+    function modeSteeringWheel() {
+      if (accCounter > 5) {
+        var average = ( (accData.y[0] - calibrationFactor.y) +
+                        (accData.y[1] - calibrationFactor.y) +
+                        (accData.y[2] - calibrationFactor.y) / 3);
+
+        if(average > 1) {
+          console.log("Right: (" + Math.round(average) + ")");
+        } else if (average < -1){
+          console.log("Left: (" + Math.round(Math.abs(average)) + ")");
+        } else {
+          console.log("Straight");
+        }
       } else {
-        console.log("Straight");
+        console.log("Calibrating device, please wait...");
       }
     }
 
@@ -287,6 +334,7 @@
       }
     }
 
+    // Server has sent list of games
     function gameList(data) {
       if(data.success === true) {
         console.log("Recieved list of games");
@@ -296,6 +344,7 @@
       }
     }
 
+    // Server has sent game configuration data
     function gameConfig(data) {
       if(data.success === true) {
         console.log("Recieved game configuration details");
@@ -303,6 +352,17 @@
       } else {
         // panic
       }
+    }
+
+    // Server has sent us an error message
+    function serverError(data) {
+      console.log("Server responded with error message");
+    }
+
+    // Reset controller
+    function reset() {
+      stopAcc();
+      init();
     }
 
     /* ---------------------------------- Rendering Views ---------------------------------- */
