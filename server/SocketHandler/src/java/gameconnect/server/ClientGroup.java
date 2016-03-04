@@ -53,6 +53,9 @@ public class ClientGroup {
                 c.session.getBasicRemote().sendText(msg);
             } catch(IOException e){
                 e.printStackTrace();
+            } catch (IllegalStateException e) {
+                // This is a temporary fix for not removing closed sessions.
+                // TODO:  REMOVE CLOSED SESSIONS
             }
         }
     }
@@ -74,6 +77,9 @@ public class ClientGroup {
                 c.session.getBasicRemote().sendText(msg);
             } catch(IOException e){
                 e.printStackTrace();
+            }  catch (IllegalStateException e) {
+                // This is a temporary fix for not removing closed sessions.
+                // TODO:  REMOVE CLOSED SESSIONS
             }
         }
     }
