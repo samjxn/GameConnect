@@ -1,5 +1,10 @@
 package gameconnect.server;
 
+import gameconnect.server.io.MessageTypes.*;
+import gameconnect.server.io.SendStrategies.*;
+import gameconnect.server.io.MessageContentTypes.*;
+import gameconnect.server.MessageType;
+import gameconnect.server.SourceType;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -142,7 +147,7 @@ public class ConnectionHandler {
                         
                         //TODO:  Change message content
                         // respond whether or not that worked.
-                        sender = new ToGroupSender(controllerClient);
+                        sender = new ToClientSender(controllerClient);
                         response = new OutgoingMessage(group.groupId, SourceType.BACKEND, 
                                 MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
                     

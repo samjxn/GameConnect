@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="io.cordova.hellocordova"
+      version="0.1.3"
+      android-versionCode="3"
+      ios-CFBundleVersion="3.3.3">
+    <preference name="Fullscreen" value="true" />
+    <name>controller</name>
+    <description>
+        A game controller for iOS and Android mobile phones that pairs with a desktop web application.
+    </description>
+    <author email="rsgallus@iastate.edu">
+        Ryan Gallus
+    </author>
+    <content src="index.html" />
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="ws://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon src="res/android/icon.png" platform="android" width="57" height="57" density="mdpi" />
+        <splash src="res/android/icon.png" density="port-mdpi"/>
+        <feature name="NetworkStatus">
+          <param name="android-package" value="org.apache.cordova.NetworkManager" />
+        </feature>
+    </platform>
+    <platform name="ios">
+        <allow-intent href="itms:*" />
+        <allow-intent href="itms-apps:*" />
+        <icon src="res/ios/icon.png" platform="ios" width="57" height="57" density="mdpi" />
+        <splash src="res/ios/icon.png" density="port-mdpi"/>
+    </platform>
+</widget>
