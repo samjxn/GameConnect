@@ -6,14 +6,6 @@
     var webSocket;                    // websocket connection
     var groupId;                      // assigned by server
     var clientId;                     // assigned by server
-    var watchId;                      // used by accelerometer
-
-    /* ---------------------------------- Game Data ---------------------------------- */
-
-    var pollingAcc;                   // boolean to track accelerometer
-    var accCounter;                   // track how long we've been polling
-    var accData;                      // object to track acceleration data changes
-    var calibrationFactor;            // calibrate acceleration on startup
 
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', init, false);
@@ -27,7 +19,7 @@
       groupId = undefined;
       clientId = undefined;
       watchId = undefined;
-      pollingAcc = false;
+      initAcc();
 
       // Add event listeners and render the home view
       console.log('Device is ready');
@@ -96,6 +88,7 @@
 
     // Back Key Press Event Handler
     function onBackKeyDown() {
+      stopAcc();
       switch(currentView) {
         case "home":
           navigator.app.exitApp();
@@ -106,8 +99,11 @@
         case "select":
           renderHomeView();
           break;
-        case "game":
-          renderGameSelectView();
+        case "portrait":
+          renderDebugView();
+          break;
+        case "landscape":
+          renderDebugView();
           break;
         default:
           navigator.app.exitApp();
@@ -147,7 +143,9 @@
       // Send the pairing code as JSON object
       var codeString = parseInt(document.getElementById('pairInput').value, 10).toString();
       console.log("Pairing code is " + codeString);
-      var data = {"groupId": null,
+      var data = {  "groupId": null,
+                    "clientId": null,
+                    "ping": null,
                     "sourceType" : "controller",
                     "messageType" : "join-group",
                     "content" :
@@ -163,7 +161,9 @@
     // Test event for debug page
     function testEvent() {
       var text = document.getElementById('debugInput').value;
-      var data = {"groupId": null,
+      var data = {  "groupId": groupId,
+                    "clientId": clientId,
+                    "ping": null,
                     "sourceType" : "controller",
                     "messageType" : "chat-message",
                     "content" :
@@ -177,141 +177,37 @@
       document.getElementById('debugInput').value = "";
     }
 
-    /* ---------------------------------- Accelerometer Data ---------------------------------- */
+    function buttonPressed(button) {
+      var a = false;
+      var b = false;
+      var d = 0;
 
-    // Toggle acceleration tracking
-    function toggleAcc() {
-      if (pollingAcc === false) {
-
-        // Initialize acceleration data
-        accCounter = 0;
-        calibrationFactor = {x: 0, y: 0, z: 0};
-        accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
-
-        // Start acceleration polling
-        var options = { frequency: 200 };  // Update every .2 seconds
-        watchId = navigator.accelerometer.watchAcceleration(accSuccess, accError, options);
-        pollingAcc = true;
-
-        console.log("Started tracking accelerometer data");
-      }
-      else {
-        stopAcc();
-      }
-    }
-
-    // Stop acceleration tracking
-    function stopAcc() {
-      if (pollingAcc === true) {
-        navigator.accelerometer.clearWatch(watchId);
-        pollingAcc = false;
-        console.log("Stopped tracking accelerometer data");
-      }
-    }
-
-    // Success callback for getting acceleration
-    function accSuccess(acceleration) {
-
-      // Update values
-      accData.x.unshift(acceleration.x);      // add to front of array
-      accData.y.unshift(acceleration.y);
-      accData.z.unshift(acceleration.z);
-      accData.x.pop();                        // remove last item of array
-      accData.y.pop();
-      accData.z.pop();
-
-      if(currentView === "debug") {
-        if (accCounter === 5) {
-          calibrationFactor.x = (accData.x[0] + accData.x[1] + accData.x[2] + accData.x[3] + accData.x[4]) / 5;
-          calibrationFactor.y = (accData.y[0] + accData.y[1] + accData.y[2] + accData.y[3] + accData.y[4]) / 5;
-          calibrationFactor.z = (accData.z[0] + accData.z[1] + accData.z[2] + accData.z[3] + accData.z[4]) / 5;
-          accCounter = 6;
-        } else if (accCounter < 5) {
-          var html =
-            "<p> Acc X: calibrating... <br>" +
-            "<p> Acc Y: calibrating... <br>" +
-            "<p> Acc Z: calibrating... <br>" +
-            "<p> Time: " + acceleration.timestamp + "<br>";
-          document.getElementById('accelerometer').innerHTML = html;
-          accCounter = accCounter + 1;
-        } else {
-          var html =
-            "<p> Acc X: " + acceleration.x + "<br>" +
-            "<p> Acc Y: " + acceleration.y + "<br>" +
-            "<p> Acc Z: " + acceleration.z + "<br>" +
-            "<p> Time: " + acceleration.timestamp + "<br>";
-            document.getElementById('accelerometer').innerHTML = html;
-        }
-
-          //modeWiiRemote();
-          modeSteeringWheel();
-
-      } else if(currentView === "game") {
-        // do something
+      switch(button) {
+        case "a":
+          a = true;
+          break;
+        case "b":
+          b = true;
+          break;
+        default:
+          d = button;
       }
 
-    }
-
-    // Error callback for getting acceleration
-    function accError() {
-      console.log('Error checking accelerometer data');
-    }
-
-    // Report spikes in acceleration
-    function modeWiiRemote() {
-      if (accCounter > 5) {
-        var changeX = accData.x[0] - accData.x[1];
-        var changeY = accData.y[0] - accData.y[1];
-
-        var xDif = accData.x[0] - calibrationFactor.x;
-        var yDif = accData.y[0] - calibrationFactor.y;
-
-        var reportX = true;
-        var reportY = true;
-
-        if (Math.abs(changeX) > 6 && Math.abs(changeY) > 6) {
-          if (Math.abs(changeX) > Math.abs(changeY)) {
-            reportX = true;
-            reportY = false;
-          } else {
-            reportX = false;
-            reportY = true;
-          }
-        }
-
-        if(reportX && xDif > 4 && changeX > 6) {
-          console.log("Left");
-        } else if(xDif < -4 && changeX < -6) {
-          console.log("Right");
-        }
-
-        if(reportY && yDif > 4 && changeY > 6) {
-          console.log("Up");
-        } else if(yDif < -4 && changeY < -6) {
-          console.log("Down");
-        }
-      } else {
-        console.log("Calibrating device, please wait...");
+      var data = {  "groupId": groupId,
+                    "clientId": clientId,
+                    "ping": null,
+                    "sourceType":"controller",
+                    "messageType": "controller-snapshot",
+                    "content":
+                    {
+                      "d-pad-input": d,
+                      "a-pressed": a,
+                      "b-pressed": b
+                    }
       }
-    }
-
-    // Report device tilt
-    function modeSteeringWheel() {
-      if (accCounter > 5) {
-        var average = ( (accData.y[0] - calibrationFactor.y) +
-                        (accData.y[1] - calibrationFactor.y) +
-                        (accData.y[2] - calibrationFactor.y) / 3);
-
-        if(average > 1) {
-          console.log("Right: (" + Math.round(average) + ")");
-        } else if (average < -1){
-          console.log("Left: (" + Math.round(Math.abs(average)) + ")");
-        } else {
-          console.log("Straight");
-        }
-      } else {
-        console.log("Calibrating device, please wait...");
-      }
+      webSocket.send(JSON.stringify(data));
+      console.log(button + " button pressed");
+      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
     }
 
     /* ---------------------------------- WebSocket Response Handlers ---------------------------------- */
@@ -338,9 +234,13 @@
     function gameList(data) {
       if(data.success === true) {
         console.log("Recieved list of games");
-        renderGameSelectView();
+        var gameListHTML = "";
+        for (game in data.content.gameList) {
+          gameListHTML = gameListHTML + "<li>" + game + "</li>";
+        }
+        renderGameSelectView(gameListHTML);
       } else {
-        // panic
+        console.log("Error receiving list of games");
       }
     }
 
@@ -348,9 +248,24 @@
     function gameConfig(data) {
       if(data.success === true) {
         console.log("Recieved game configuration details");
-        renderGameView();
+        switch(data.content.gameMode) {
+          case "1":
+            renderPortraitControllerView();
+            break;
+          case "2":
+            renderPortraitControllerView();
+            toggleAcc();
+            break;
+          case "3":
+            renderLandscapeControllerView();
+            break;
+          case "4":
+            renderLandscapeControllerView();
+            toggleAcc();
+            break;
+        }
       } else {
-        // panic
+        console.log("Error receiving game configuration details");
       }
     }
 
@@ -381,6 +296,7 @@
       document.getElementById('pairInput').oninput = checkPairingCode;
       stopAcc();
       currentView = "home";
+      updateView(currentView);
       console.log('Home view rendered');
     }
 
@@ -390,31 +306,63 @@
         "<h1>Debug</h1>" +
         "<input type='text' placeholder='Write to WebSocket' id='debugInput'><br>" +
         "<button type='button' class='button' id='testButton'>Send</button>" +
-        "<div id ='accelerometer'><p> Acc X: --- <br><p> Acc Y: --- <br><p> Acc Z: --- <br><p> Time: --- <br></div>" +
-        "<button type='button' class='button' id='accButton'>Toggle Accelerometer</button>";
+        "<div id ='accelerometer'><p> Acc X: --- <br><p> Acc Y: --- <br><p> Acc Z: --- <br></div>" +
+        "<button type='button' class='button' id='accButton'>Toggle Accelerometer</button>" +
+        "<div id='inline'>" +
+        "<button type='button' class='button' id='portraitButton'>1</button>" +
+        "<button type='button' class='button' id='landscapeButton'>2</button>" +
+        "</div>";
       document.getElementById('application').innerHTML = html;
       document.getElementById('testButton').onclick = testEvent;
       document.getElementById('accButton').onclick = toggleAcc;
+      document.getElementById('portraitButton').onclick = renderPortraitControllerView;
+      document.getElementById('landscapeButton').onclick = renderLandscapeControllerView;
       currentView = "debug";
+      updateView(currentView);
       console.log('Debug view rendered');
     }
 
     // Render the Game Select View
-    function renderGameSelectView() {
+    function renderGameSelectView(gameListHTML) {
       var html =
-        "<h1>Select a Game</h1>";
+        "<h1>Select a Game</h1>" +
+        "<div id='gameList'> <ul>" + gameListHTML +
+        "</ul> </div>";
       document.getElementById('application').innerHTML = html;
       currentView = "select";
+      updateView(currentView);
       console.log('Game Select view rendered');
     }
 
-    // Render a Game
-    function renderGameView() {
+    // Render the Portrait Game Contoller view with Motion Remote
+    function renderPortraitControllerView() {
       var html =
-        "<h1>Game</h1>";
+        "<h1>Motion Remote</h1>";
       document.getElementById('application').innerHTML = html;
-      currentView = "game";
-      console.log('Game view rendered');
+      currentView = "motion";
+      updateView(currentView);
+      console.log('Portrait game controller view rendered');
+    }
+
+    // Render the Landscape Game Controller view with Steering Wheel
+    function renderLandscapeControllerView() {
+      var html =
+        "<button type='button' class='controllerButton' id='controllerButtonA'>A</button>" +
+        "<button type='button' class='controllerButton' id='controllerButtonB'>B</button>" +
+        "<button type='button' class='controllerButton' id='controllerButtonW'>&#8592</button>" +
+        "<button type='button' class='controllerButton' id='controllerButtonS'>&#8595</button>" +
+        "<button type='button' class='controllerButton' id='controllerButtonN'>&#8593</button>" +
+        "<button type='button' class='controllerButton' id='controllerButtonE'>&#8594</button>";
+      document.getElementById('application').innerHTML = html;
+      document.getElementById('controllerButtonA').onclick = function(){ buttonPressed("a"); };
+      document.getElementById('controllerButtonB').onclick = function(){ buttonPressed("b"); };
+      document.getElementById('controllerButtonW').onclick = function(){ buttonPressed("4"); };
+      document.getElementById('controllerButtonS').onclick = function(){ buttonPressed("3"); };
+      document.getElementById('controllerButtonN').onclick = function(){ buttonPressed("1"); };
+      document.getElementById('controllerButtonE').onclick = function(){ buttonPressed("2"); };
+      currentView = "landscape";
+      updateView(currentView);
+      console.log('Landscape game controller view rendered');
     }
 
 }());

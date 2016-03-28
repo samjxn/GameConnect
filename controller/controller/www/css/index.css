@@ -30,22 +30,19 @@ body {
 
 /* Portrait layout (default) */
 .app {
-    position: absolute;             /* position in the center of the screen */
-    left: 50%;
-    height: 50px;                   /* text area height */
-    width: 225px;                   /* text area width */
+    position: absolute;
+    height: 100%;
+    width: 100%;
     text-align: center;
-    padding: 180px 0px 0px 0px;
-    margin: -115px 0px 0px -112px;
 }
 
 /* Landscape layout */
 @media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
     .app {
-        background-position:left center;
-        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
-        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
-                                      /* offset horizontal: half of image width and text area width */
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      text-align: center;
     }
 }
 
@@ -55,12 +52,12 @@ h1 {
     color: #FFFFFF;
     margin:0px;
     overflow:visible;
-    padding:0px;
+    padding-top:20%;
     text-align:center;
 }
 
 input[type=number], select {
-    width: 100%;
+    width: 80%;
     padding: 12px 20px;
     margin: 8px 0;
     text-align: center;
@@ -68,10 +65,11 @@ input[type=number], select {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    outline:none;
 }
 
 input[type=text], select {
-    width: 100%;
+    width: 80%;
     padding: 12px 20px;
     margin: 8px 0;
     text-align: center;
@@ -79,11 +77,21 @@ input[type=text], select {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    outline:none;
 }
 
 /* ---------- HOME VIEW ---------- */
+
+#message {
+  position: relative;
+  margin-top: 25%;
+  text-align: center;
+  font-size: 12px;
+  color: #FFFFFF;
+}
+
 #pairButton {
-  width: 100%;
+  width: 80%;
   background-color: #4CAF50;
   color: white;
   padding: 20px 20px;
@@ -100,36 +108,110 @@ input[type=text], select {
 
 #debugButton {
   position: relative;
-  margin-top: 40%;
+  margin-top: 20%;
+}
+
+/* ---------- GAME SELECT VIEW ---------- */
+
+#gameList {
+  padding-top: 10%;
+  height: 60%;
+  width: 80%;
+  overflow-y: scroll;
+  background-color: #222222;
+  color: white;
+  font-size:18px;
 }
 
 /* ---------- DEBUG VIEW ---------- */
 
 #testButton {
   position: relative;
-  margin-top: 10%;
+  margin-top: 5%;
 }
 
 #debugInput {
   position: relative;
-  margin-top: 20%;
+  margin-top: 10%;
 }
 
 #accelerometer {
   position: relative;
-  margin-top: 40%;
-  margin-bottom: 20%;
+  margin-top: 15%;
+  margin-bottom: 10%;
   text-align: center;
   font-size: 14px;
   color: #FFFFFF;
 }
 
-#message {
-  position: relative;
-  margin-top: 45%;
-  text-align: center;
-  font-size: 12px;
-  color: #FFFFFF;
+#inline {
+  display: inline-block;
+  margin-top: 5%;
+}
+
+#remoteButton {
+  width: 25%;
+  margin: 2%;
+}
+
+#controllerButton {
+  width: 25%;
+  margin: 2%;
+}
+
+#wheelButton {
+  width: 25%;
+  margin: 2%;
+}
+
+/* ---------- GAME VIEWS ---------- */
+
+.controllerButton {
+  position: absolute;
+  border-radius: 20px 20px 20px 20px;
+  width: 70px;
+  height: 70px;
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  font-weight: bold;
+  outline: none;
+}
+
+.controllerButton:active {
+  background-color: #BBBBBB;
+  border: none;
+  color: white;
+}
+
+
+#controllerButtonA {
+  top: 70px;
+  left: 85px;
+}
+
+#controllerButtonB {
+  top: 180px;
+  left: 85px;
+}
+
+#controllerButtonW {
+  bottom: 190px;
+  left: 120px;
+}
+
+#controllerButtonS {
+  bottom: 120px;
+  left: 50px;
+}
+
+#controllerButtonN {
+  bottom: 120px;
+  left: 190px;
+}
+
+#controllerButtonE {
+  bottom: 50px;
+  left: 120px;
 }
 
 /* ---------- CLASS STYLES ---------- */
@@ -143,6 +225,7 @@ input[type=text], select {
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+    outline:none;
 }
 
 .event {
