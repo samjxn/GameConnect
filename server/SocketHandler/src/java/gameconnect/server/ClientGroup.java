@@ -1,10 +1,12 @@
 package gameconnect.server;
 
 import gameconnect.server.context.Context;
+import gameconnect.server.io.MessageTypes.Message;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.websocket.Session;
+import java.lang.reflect.Type;
 
 /**
  *
@@ -15,21 +17,35 @@ public class ClientGroup {
     /**
      * List of all clients within this group
      */
-    List<Client> clients;
+    public List<Client> clients;
 
     /**
      * The group identifier
      */
-    String groupId;
+    private String groupId;
+    
+    public String getGroupID(){
+        return groupId;
+    }
 
-    Context context = null;
+    public Context context = null;
 
-    ClientGroup(String id) {
+    /**
+     * 
+     * @param id 
+     */
+    @Deprecated
+    protected ClientGroup(String id) {
         this.groupId = id;
         this.clients = new ArrayList<>();
     }
 
-    ClientGroup(Client openingClient, String groupId) {
+    /**
+     * 
+     * @param openingClient
+     * @param groupId 
+     */
+    protected ClientGroup(Client openingClient, String groupId) {
         if (openingClient == null || groupId == null) {
             throw new NullPointerException();
         }
@@ -39,7 +55,11 @@ public class ClientGroup {
         clients.add(openingClient);
     }
 
-    void giveClient(Client c) {
+    /**
+     * 
+     * @param c 
+     */
+    protected void giveClient(Client c) {
         if (c == null) {
             throw new NullPointerException();
         }
@@ -49,6 +69,10 @@ public class ClientGroup {
         }
     }
 
+    /**
+     * 
+     * @param msg 
+     */
     public void sendToAll(String msg) {
         if (msg == null) {
             throw new NullPointerException();
@@ -57,6 +81,28 @@ public class ClientGroup {
         for (Client c : this.clients) {
             try {
                 c.session.getBasicRemote().sendText(msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * 
+     * @param m
+     * @param t 
+     */
+    public void sendToAll(Message m, Type t){
+        if (m == null || t == null) {
+            throw new NullPointerException();
+        }
+        if(false){
+            //implement checking to ensure type t is a valid subclass of Message
+        }
+
+        for (Client c : this.clients) {
+            try {
+                c.sendMessage(m, t);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -84,5 +130,32 @@ public class ClientGroup {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Send message to everyone in group, except the sender
+     *
+     * @param m
+     * @param s
+     */
+    public void sendToAll(Message m, Type t, Session s) {
+        if (m == null || s == null || t == null) {
+            throw new NullPointerException();
+        }
+
+        for (Client c : this.clients) {
+            if (c.session.equals(s)) {
+                continue;
+            }
+            try {
+                c.sendMessage(m, t);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public boolean inContext(){
+        return context != null;
     }
 }
