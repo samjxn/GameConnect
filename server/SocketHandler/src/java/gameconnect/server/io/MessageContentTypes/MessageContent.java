@@ -8,7 +8,8 @@ package gameconnect.server.io.MessageContentTypes;
  */
 
 /**
- *
+ * An abstract class to be the super of all message contents.
+ * Must be extended
  * @author Sam Jackson
  * @author David Boschwitz
  */
