@@ -23,7 +23,7 @@ body {
     font-size:12px;
     height:100%;
     margin:0px;
-    padding:0px;
+    overflow: hidden;
     text-transform:uppercase;
     width:100%;
 }
@@ -114,13 +114,37 @@ input[type=text], select {
 /* ---------- GAME SELECT VIEW ---------- */
 
 #gameList {
-  padding-top: 10%;
-  height: 60%;
-  width: 80%;
+  margin-top: 10%;
+  margin-left: 5%;
+  padding: 0px;
+  height: 55%;
+  width: 90%;
   overflow-y: scroll;
   background-color: #222222;
   color: white;
   font-size:18px;
+}
+
+#playButton {
+  margin-top: 5%;
+}
+
+ul {
+  padding-left: 0px;
+  margin-top: 2px;
+}
+
+ul li {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width 100%;
+    margin: 2px;
+    list-style-type: none;
+    background-color: #000000;
+}
+
+.selected {
+  background-color: #4CAF50;
 }
 
 /* ---------- DEBUG VIEW ---------- */
@@ -149,19 +173,14 @@ input[type=text], select {
   margin-top: 5%;
 }
 
-#remoteButton {
+#portraitButton {
   width: 25%;
-  margin: 2%;
+  margin: 3%;
 }
 
-#controllerButton {
+#landscapeButton {
   width: 25%;
-  margin: 2%;
-}
-
-#wheelButton {
-  width: 25%;
-  margin: 2%;
+  margin: 3%;
 }
 
 /* ---------- GAME VIEWS ---------- */

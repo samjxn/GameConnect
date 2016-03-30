@@ -158,6 +158,39 @@
       webSocket.send(JSON.stringify(data));
     }
 
+    function selectListItem(event) {
+      var selected;
+
+      if(event.target.tagName === 'LI') {
+        selected= document.querySelector('li.selected');
+        if(selected) selected.className= '';
+        event.target.className= 'selected';
+      }
+    }
+
+    // Send selected game to backend
+    function gameSelection() {
+      var selection = document.getElementsByClassName("selected")
+      if(selection.length != 1) {
+        return;
+      }
+      var game = selection[0].innerHTML;
+      console.log("Game selected: " + game);
+      var data = {  "groupId": groupId,
+                    "clientId": clientId,
+                    "ping": null,
+                    "sourceType" : "controller",
+                    "messageType" : "set-context",
+                    "content" :
+                    {
+                      "contextName" : game
+                    }
+      }
+      console.log("Sending data to server:");
+      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+      webSocket.send(JSON.stringify(data));
+    }
+
     // Test event for debug page
     function testEvent() {
       var text = document.getElementById('debugInput').value;
@@ -221,6 +254,15 @@
         document.getElementById('message').innerHTML = "Success";
         document.getElementById('pairButton').className = "button";
         document.getElementById('message').style.color = '##4CAF50';
+
+        // temp data for demo
+        var temp_data = '{  "content":' +
+                      '{' +
+                        '"games": ["snake", "jetpack hero", "potato hunter", "flappy bird", "airplane", "chess", "checkers", "banana phone"]' +
+                      '}' +
+        '}';
+        gameList(JSON.parse(temp_data));
+
       } else {
         console.log("Failed to join group");
         document.getElementById('message').innerHTML = "Failed to Join Group";
@@ -232,40 +274,35 @@
 
     // Server has sent list of games
     function gameList(data) {
-      if(data.success === true) {
-        console.log("Recieved list of games");
-        var gameListHTML = "";
-        for (game in data.content.gameList) {
-          gameListHTML = gameListHTML + "<li>" + game + "</li>";
-        }
-        renderGameSelectView(gameListHTML);
-      } else {
-        console.log("Error receiving list of games");
+      console.log("Recieved list of games");
+      var gameListHTML = "";
+
+      var i;
+      for (i = 0; i < data.content.games.length; i++) {
+        gameListHTML = gameListHTML + "<li>" + data.content.games[i] + "</li>";
       }
+
+      renderGameSelectView(gameListHTML);
     }
 
     // Server has sent game configuration data
     function gameConfig(data) {
-      if(data.success === true) {
-        console.log("Recieved game configuration details");
-        switch(data.content.gameMode) {
-          case "1":
-            renderPortraitControllerView();
-            break;
-          case "2":
-            renderPortraitControllerView();
-            toggleAcc();
-            break;
-          case "3":
-            renderLandscapeControllerView();
-            break;
-          case "4":
-            renderLandscapeControllerView();
-            toggleAcc();
-            break;
-        }
-      } else {
-        console.log("Error receiving game configuration details");
+      console.log("Recieved game configuration details");
+      switch(data.content.gameMode) {
+        case "1":
+          renderPortraitControllerView();
+          break;
+        case "2":
+          renderPortraitControllerView();
+          toggleAcc();
+          break;
+        case "3":
+          renderLandscapeControllerView();
+          break;
+        case "4":
+          renderLandscapeControllerView();
+          toggleAcc();
+          break;
       }
     }
 
@@ -326,9 +363,11 @@
     function renderGameSelectView(gameListHTML) {
       var html =
         "<h1>Select a Game</h1>" +
-        "<div id='gameList'> <ul>" + gameListHTML +
-        "</ul> </div>";
+        "<div id='gameList'> <ul id='games'>" + gameListHTML +
+        "</ul> </div> <button type='button' class='button' id='playButton'>Play</button>";
       document.getElementById('application').innerHTML = html;
+      document.getElementById('playButton').onclick = gameSelection;
+      document.querySelector('ul').addEventListener('click', function(event) { selectListItem(event); }, false);
       currentView = "select";
       updateView(currentView);
       console.log('Game Select view rendered');
