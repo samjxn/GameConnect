@@ -16,7 +16,7 @@ public class GroupingCodeMessage extends Message {
     }
     
     public GroupingCodeMessageContent getContent(){
-        return this.content;
+        return (GroupingCodeMessageContent) this.content;
     }
     
 }

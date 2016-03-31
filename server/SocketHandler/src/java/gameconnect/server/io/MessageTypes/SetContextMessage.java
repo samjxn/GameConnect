@@ -8,7 +8,7 @@ import gameconnect.server.io.MessageContentTypes.SetContextMessageContent;
  */
 public class SetContextMessage extends Message {
     
-    
+    SetContextMessageContent content;
     
     public SetContextMessage(String groupId, String sourceType, String messageType, SetContextMessageContent content2) {
         super(groupId, sourceType, messageType);

@@ -10,9 +10,9 @@ import gameconnect.server.io.MessageContentTypes.MessageContent;
 public abstract class Message {
     
     protected String groupId;
-    private String sourceType;
-    private String messageType;
-    protected MessageContent content;
+    protected String sourceType;
+    protected String messageType;
+    //protected MessageContent content;
     
     public Message(String groupId, String sourceType, String messageType) {
         this.groupId = groupId;
@@ -20,18 +20,27 @@ public abstract class Message {
         this.messageType = messageType;
 //        this.content = null;
     }
+    
+//    /**
+//     * Creates a new message
+//     * @param groupId 
+//     * @param sourceType
+//     * @param messageType
+//     * @param content 
+//     */
+//    public Message(String groupId, String sourceType, String messageType, MessageContent content) {
+//        this.groupId = groupId;
+//        this.sourceType = sourceType;
+//        this.messageType = messageType;
+//        this.content = content;
+//    }
+
     /**
-     * Creates a new message
-     * @param groupId 
-     * @param sourceType
-     * @param messageType
-     * @param content 
+     * Only for use by gson
      */
-    public Message(String groupId, String sourceType, String messageType, MessageContent content) {
-        this.groupId = groupId;
-        this.sourceType = sourceType;
-        this.messageType = messageType;
-        this.content = content;
+    @Deprecated
+    public Message(){
+        
     }
        
     public String getGroupId() {
@@ -46,7 +55,5 @@ public abstract class Message {
         return this.messageType;
     }
     
-    public MessageContent getContent() {
-        return this.content;
-    }
+    public abstract MessageContent getContent();
 }

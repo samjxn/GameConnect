@@ -2,6 +2,7 @@ package gameconnect.server.io.MessageTypes;
 
 import gameconnect.server.MessageType;
 import gameconnect.server.io.MessageContentTypes.ChatMessageContent;
+import gameconnect.server.io.MessageContentTypes.MessageContent;
 
 /**
  *
@@ -9,8 +10,16 @@ import gameconnect.server.io.MessageContentTypes.ChatMessageContent;
  */
 public class ChatMessage extends Message {
     
+    ChatMessageContent content;
+    
     public ChatMessage(String groupId, String sourceType, ChatMessageContent content) {
-        super(groupId, sourceType, MessageType.CHAT_MESSAGE, content);
+        super(groupId, sourceType, MessageType.CHAT_MESSAGE);
+        this.content =  content;
+    }
+
+    @Override
+    public ChatMessageContent getContent() {
+        return content;
     }
     
 }

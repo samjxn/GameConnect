@@ -68,6 +68,7 @@ public class ConnectionHandler {
         if (clients == null) {
             clients = new HashMap<>();
         }
+        gson = new GsonBuilder().create();
     }
 
     /**
@@ -96,7 +97,7 @@ public class ConnectionHandler {
 
         Message incomingMessage;
         try {
-            incomingMessage = gson.fromJson(messageJson, Message.class);
+            incomingMessage = gson.fromJson(messageJson, DefaultMessage.class);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             //incomingMessage = new Message(null, null, null, null);
@@ -154,14 +155,19 @@ public class ConnectionHandler {
                     // find the open group in the hash map
                     // put the client into the group.
                     if (group != null) {
-                        Client controllerClient = new Client(ClientType.MOBILE, session, group);
+                        Client controllerClient;
+                        if (getClient(session) == null) {
+                            clients.put(session, controllerClient = new Client(ClientType.MOBILE, session, group));
+                        } else {
+                            controllerClient = getClient(session);
+                        }
                         String clientId = ""; // TODO:  Remove when clients have ids
 
                         group.giveClient(controllerClient);
-
+                        controllerClient.clientGrouping = group;
                         //TODO:  Change message content
                         // respond whether or not that worked.
-                        sender = new ToClientSender(controllerClient);
+                        sender = new ToGroupSender(controllerClient);
                         response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND,
                                 MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
                         sendGameList = true;
@@ -176,15 +182,20 @@ public class ConnectionHandler {
             case MessageType.SET_CONTEXT:
                 SetContextMessage scm = gson.fromJson(messageJson, SetContextMessage.class);
                 switch (scm.getContent().getContextName()) {
-                    default:
+                    case "snake":
                         if (getClient(session) != null && getClient(session).getGroup() != null) {
+                            getClient(session).getGroup().sendToAll("{ \"groupId\": "+getClient(session).getGroup().getGroupID()+", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"snake\" } }");
                             getClient(session).getGroup().context = new SnakeContext(getClient(session).getGroup());
                             sent = true;
-                            sendGameList = true;
                         } else {
                             sender = new ToSessionSender(session);
                             response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
                         }
+                        break;
+                    default:
+                        sender = new ToSessionSender(session);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Invalid context name!"));
+                        break;
                 }
 
                 break;
@@ -208,7 +219,7 @@ public class ConnectionHandler {
             }
 
             if (sendGameList) {
-                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",\"flappy\", \"etc\"] } }");
+                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",\"flappy\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\"] } }");
             }
 
         } catch (IOException ex) {

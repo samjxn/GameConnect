@@ -13,6 +13,10 @@ package gameconnect.server.io.MessageContentTypes;
  * @author Sam Jackson
  * @author David Boschwitz
  */
-public abstract class MessageContent {
-    
+public class MessageContent {
+    /**
+     * for use by gson library only.
+     */
+    @Deprecated
+    public MessageContent(){}
 }
