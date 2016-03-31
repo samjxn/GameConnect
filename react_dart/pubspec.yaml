@@ -1,0 +1,4 @@
+name: my_app
+dependencies:
+  browser: any
+  react:
