@@ -16,6 +16,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gameconnect.server.context.SnakeContext;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 
 /**
@@ -26,10 +27,11 @@ import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 public class ConnectionHandler {
 
     private static Gson gson;
-    
-    public static synchronized Gson gsonSingleton(){
-        if(gson == null)
+
+    public static synchronized Gson gsonSingleton() {
+        if (gson == null) {
             gson = new GsonBuilder().create();
+        }
         return gson;
     }
 
@@ -43,6 +45,14 @@ public class ConnectionHandler {
      */
     protected static HashMap<String, ClientGroup> clientGroups = null;
 
+    /**
+     *
+     */
+    protected static HashMap<Session, Client> clients = null;
+
+    /**
+     *
+     */
     private final int MAX_OPEN_CONNECTIONS = 100000;
 
     /**
@@ -50,10 +60,13 @@ public class ConnectionHandler {
      */
     static {
         if (openGroups == null) {
-            ConnectionHandler.openGroups = new HashMap<String, ClientGroup>();
+            openGroups = new HashMap<>();
         }
         if (clientGroups == null) {
-            ConnectionHandler.clientGroups = new HashMap<String, ClientGroup>();
+            clientGroups = new HashMap<>();
+        }
+        if (clients == null) {
+            clients = new HashMap<>();
         }
     }
 
@@ -99,6 +112,8 @@ public class ConnectionHandler {
 
         OutgoingMessage response = null;
         SendStrategy sender = null;
+        boolean sendGameList = false;
+        boolean sent = false;
 
         //TODO:  Replace switch block with a design pattern.
         switch (incomingMessage.getMessageType()) {
@@ -113,6 +128,7 @@ public class ConnectionHandler {
                     Client client = clientClientGroupTuple.item0;
                     ClientGroup group = clientClientGroupTuple.item1;
 
+                    clients.put(session, client);
                     sender = new ToClientSender(client);
                     response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE,
                             new GroupingCodeMessageContent(groupingCode));
@@ -148,7 +164,7 @@ public class ConnectionHandler {
                         sender = new ToClientSender(controllerClient);
                         response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND,
                                 MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
-
+                        sendGameList = true;
                     } else {
                         sender = new ToSessionSender(session);
                         response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Open Group did not exist"));
@@ -157,18 +173,43 @@ public class ConnectionHandler {
                 }
                 break;
 
+            case MessageType.SET_CONTEXT:
+                SetContextMessage scm = gson.fromJson(messageJson, SetContextMessage.class);
+                switch (scm.getContent().getContextName()) {
+                    default:
+                        if (getClient(session) != null && getClient(session).getGroup() != null) {
+                            getClient(session).getGroup().context = new SnakeContext(getClient(session).getGroup());
+                            sent = true;
+                            sendGameList = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                }
+
+                break;
+
+            default:
+                //just let the context try to handle it
+                if (getClient(session) != null && getClient(session).getGroup() != null && getClient(session).getGroup().context != null) {
+                    sent |= getClient(session).getGroup().context.handleMessage(incomingMessage, messageJson, session);
+                }
         }
 
         try {
+            if (!sent) {
+                if (response == null) {
+                    sender = new ToSessionSender(session);
+                    response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR,
+                            new ErrorMessageContent("Message not Recognized."));
 
-            if (response == null) {
-                sender = new ToSessionSender(session);
-                response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR,
-                        new ErrorMessageContent("Message not Recognized."));
-
+                }
+                response.send(gson, sender);
             }
 
-            response.send(gson, sender);
+            if (sendGameList) {
+                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",\"flappy\", \"etc\"] } }");
+            }
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -186,7 +227,9 @@ public class ConnectionHandler {
     }
 
     protected Client getClient(Session sesh) {
-        //TODO: Search hashmap clients to find client
+        if (sesh != null) {
+            return clients.get(sesh);
+        }
         return null;
     }
 

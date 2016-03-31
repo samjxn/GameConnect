@@ -2,6 +2,7 @@ package gameconnect.server.context;
 
 import gameconnect.server.Client;
 import gameconnect.server.ClientGroup;
+import gameconnect.server.io.MessageTypes.Message;
 import java.util.ArrayList;
 import javax.websocket.Session;
 
@@ -53,7 +54,7 @@ public class DebugContext extends Context {
     }
 
     @Override
-    public void handleMessage(String messageJson, Session session) {
+    public boolean handleMessage(Message messageJson, String msgText, Session session) {
         throw new UnsupportedOperationException("Not supported yet."); 
     }
 

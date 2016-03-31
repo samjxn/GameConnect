@@ -17,7 +17,14 @@ public abstract class Context {
         this.group = group;
     }
 
-    public abstract void handleMessage(Message incomingMessage, Session session);
+    /**
+     * return true if message is properly handled
+     * @param incomingMessage
+     * @param msgText
+     * @param session
+     * @return 
+     */
+    public abstract boolean handleMessage(Message incomingMessage, String msgText, Session session);
 
     public abstract void endContext();
 }

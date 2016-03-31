@@ -20,15 +20,17 @@ public class test {
         
         Gson gson = new GsonBuilder().create();
         
-        String m1Json = "{\"groupId\":null, \"sourceType\":\"controller\", \"messageType\":\"join-group\", \"content\":{\"groupingCode\":\"2\"}}";
-        GroupingCodeMessage m1 = gson.fromJson(m1Json, GroupingCodeMessage.class);
+//        String m1Json = "{\"groupId\":null, \"sourceType\":\"controller\", \"messageType\":\"join-group\", \"content\":{\"groupingCode\":\"2\"}}";
+//        GroupingCodeMessage m1 = gson.fromJson(m1Json, GroupingCodeMessage.class);
+//        
+//        m1Json = gson.toJson(m1, GroupingCodeMessage.class);
+//        System.out.println(m1Json);
+//        
+//        OutgoingMessage m2 = new OutgoingMessage("2", "backend", "grouping-approved", new GroupingApprovedMessageContent(true, "2"));
+//        
+//        System.out.println(gson.toJson(m2, OutgoingMessage.class));
         
-        m1Json = gson.toJson(m1, GroupingCodeMessage.class);
-        System.out.println(m1Json);
-        
-        OutgoingMessage m2 = new OutgoingMessage("2", "backend", "grouping-approved", new GroupingApprovedMessageContent(true, "2"));
-        
-        System.out.println(gson.toJson(m2, OutgoingMessage.class));
-        
+        SetContextMessage scm = new SetContextMessage("#", "mobile", MessageType.SET_CONTEXT, new SetContextMessageContent("snake")); 
+        System.out.println(gson.toJson(scm, SetContextMessage.class));
     }
 }

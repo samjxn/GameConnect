@@ -12,7 +12,7 @@ public abstract class Message {
     protected String groupId;
     private String sourceType;
     private String messageType;
-    private MessageContent content;
+    protected MessageContent content;
     
     public Message(String groupId, String sourceType, String messageType) {
         this.groupId = groupId;
