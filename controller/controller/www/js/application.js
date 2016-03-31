@@ -3,9 +3,12 @@
     /* ---------------------------------- Local Variables ---------------------------------- */
 
     var currentView;                  // track what view is rendered
+    var previousView;                 // used for back button functionality
     var webSocket;                    // websocket connection
     var groupId;                      // assigned by server
     var clientId;                     // assigned by server
+    var timeout;                      // for keeping track of time
+    var gamesList;                    // list of games recieved from server
 
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', init, false);
@@ -13,11 +16,11 @@
     function init() {
 
       // Clear global variables
-      viewStack = new Array();
       currentView = undefined;
       webSocket = undefined;
       groupId = undefined;
       clientId = undefined;
+      gamesList = [];
       watchId = undefined;
       initAcc();
 
@@ -58,10 +61,11 @@
           case "join-group":
             joinGroup(data);
             break;
-          case "game-list":
-            gameList(data);
+          case "context-list":
+            updateGameList(data);
+            renderGameSelectView();
             break;
-          case "game-config":
+          case "game-mode":
             gameConfig(data);
             break;
           case "error":
@@ -78,8 +82,8 @@
 
       // When the websocket is closed
       webSocket.onclose = function(event){
-        console.log('WebSocket closed, resetting application');
-        reset();
+        console.log('WebSocket closed, resetting application in 5 seconds');
+        timeout = setTimeout(reset, 5000);     // set timeout 5 seconds;
       };
 
     }
@@ -97,13 +101,21 @@
           renderHomeView();
           break;
         case "select":
-          renderHomeView();
+          navigator.notification.confirm("Are you sure you want to leave this session and return to the pairing screen?", reset, "Confirm", ["Yes", "Cancel"]);
           break;
         case "portrait":
-          renderDebugView();
+          if(previousView === "debug") {
+            renderDebugView();
+          } else {
+            navigator.notification.confirm("Are you sure you want to end the game?", renderGameSelectView, "End Game", ["Yes", "Cancel"]);
+          }
           break;
         case "landscape":
-          renderDebugView();
+          if(previousView === "debug") {
+            renderDebugView();
+          } else {
+            navigator.notification.confirm("Are you sure you want to end the game?", renderGameSelectView, "End Game", ["Yes", "Cancel"]);
+          }
           break;
         default:
           navigator.app.exitApp();
@@ -155,7 +167,20 @@
       }
       console.log("Sending data to server:");
       console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+      timeout = setTimeout(pairTimeout, 30000);     // set timeout 30 seconds
+
       webSocket.send(JSON.stringify(data));
+    }
+
+    function pairTimeout() {
+      document.getElementById('pairButton').disabled = true;
+      document.getElementById('pairButton').className = "";
+      document.getElementById('message').innerHTML = "Pairing Timed Out";
+      document.getElementById('message').className = "";
+      document.getElementById('message').style.color = '#DC0000';
+      document.getElementById('pairInput').disabled = false;
+      document.getElementById('pairInput').value = "";
+      console.log("Pairing request timed out");
     }
 
     function selectListItem(event) {
@@ -188,7 +213,20 @@
       }
       console.log("Sending data to server:");
       console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+
+      document.getElementById('status').innerHTML = "Waiting for Server";
+      document.getElementById('message').style.color = '#DC0000';
+      document.getElementById('message').className = "blink";
+      document.getElementById('playButton').disabled = true;
+      timeout = setTimeout(selectTimeout, 30000);               // set timeout 30 seconds
+
       webSocket.send(JSON.stringify(data));
+    }
+
+    function selectTimeout() {
+      document.getElementById('playButton').disabled = false;
+      document.getElementById('message').innerHTML = "Server Timed Out";
+      document.getElementById('message').style.color = '#4CAF50';
     }
 
     // Test event for debug page
@@ -247,6 +285,7 @@
 
     // After receiving a Join Group messsage from the server
     function joinGroup(data) {
+      clearTimeout(timeout);
       if(data.content.groupingApproved === true) {
         console.log("Successfully joined group " + data.groupId);
         groupId = data.groupId;
@@ -256,12 +295,13 @@
         document.getElementById('message').style.color = '##4CAF50';
 
         // temp data for demo
-        var temp_data = '{  "content":' +
+        /*var temp_data = '{  "content":' +
                       '{' +
                         '"games": ["snake", "jetpack hero", "potato hunter", "flappy bird", "airplane", "chess", "checkers", "banana phone"]' +
                       '}' +
-        '}';
-        gameList(JSON.parse(temp_data));
+        '}';*/
+
+        //gameList(JSON.parse(temp_data));
 
       } else {
         console.log("Failed to join group");
@@ -273,36 +313,35 @@
     }
 
     // Server has sent list of games
-    function gameList(data) {
+    function updateGameList(data) {
       console.log("Recieved list of games");
-      var gameListHTML = "";
-
-      var i;
-      for (i = 0; i < data.content.games.length; i++) {
-        gameListHTML = gameListHTML + "<li>" + data.content.games[i] + "</li>";
-      }
-
-      renderGameSelectView(gameListHTML);
+      gamesList = data.content.games;
     }
 
     // Server has sent game configuration data
     function gameConfig(data) {
+      clearTimeout(timeout);
       console.log("Recieved game configuration details");
       switch(data.content.gameMode) {
-        case "1":
+        case 1:
           renderPortraitControllerView();
           break;
-        case "2":
+        case 2:
           renderPortraitControllerView();
           toggleAcc();
           break;
-        case "3":
+        case 3:
           renderLandscapeControllerView();
           break;
-        case "4":
+        case 4:
           renderLandscapeControllerView();
           toggleAcc();
           break;
+        case 5:
+          renderDebugView();
+            break;
+        default:
+          console.log("Game mode not recognized");
       }
     }
 
@@ -321,6 +360,7 @@
 
     // Render the Home View
     function renderHomeView() {
+      stopAcc();
       var html =
         "<h1>Pair With Computer</h1>" +
         "<div id='message'>Start Typing</div>" +
@@ -339,6 +379,7 @@
 
     // Render the Debug View
     function renderDebugView() {
+      stopAcc();
       var html =
         "<h1>Debug</h1>" +
         "<input type='text' placeholder='Write to WebSocket' id='debugInput'><br>" +
@@ -354,37 +395,58 @@
       document.getElementById('accButton').onclick = toggleAcc;
       document.getElementById('portraitButton').onclick = renderPortraitControllerView;
       document.getElementById('landscapeButton').onclick = renderLandscapeControllerView;
+
+      // Update views and log
+      previousView = currentView;
       currentView = "debug";
       updateView(currentView);
       console.log('Debug view rendered');
     }
 
     // Render the Game Select View
-    function renderGameSelectView(gameListHTML) {
+    function renderGameSelectView() {
+      stopAcc();
+
+      // Generate html for list of games
+      var gameListHTML = "";
+      var i;
+      for (i = 0; i < gamesList.length; i++) {
+        gameListHTML = gameListHTML + "<li>" + gamesList[i] + "</li>";
+      }
+
       var html =
         "<h1>Select a Game</h1>" +
         "<div id='gameList'> <ul id='games'>" + gameListHTML +
-        "</ul> </div> <button type='button' class='button' id='playButton'>Play</button>";
+        "</ul> </div> <button type='button' class='button' id='playButton'>Play</button>" +
+        "<div id='status'> Ready </div>";
       document.getElementById('application').innerHTML = html;
       document.getElementById('playButton').onclick = gameSelection;
       document.querySelector('ul').addEventListener('click', function(event) { selectListItem(event); }, false);
+
+      // Update views and log
+      previousView = currentView;
       currentView = "select";
       updateView(currentView);
       console.log('Game Select view rendered');
     }
 
-    // Render the Portrait Game Contoller view with Motion Remote
+    // Render the Portrait Game Contoller view with Motion Remote (unfinished)
     function renderPortraitControllerView() {
+      stopAcc();
       var html =
         "<h1>Motion Remote</h1>";
       document.getElementById('application').innerHTML = html;
-      currentView = "motion";
+
+      // Update views and log
+      previousView = currentView;
+      currentView = "portrait";
       updateView(currentView);
       console.log('Portrait game controller view rendered');
     }
 
     // Render the Landscape Game Controller view with Steering Wheel
     function renderLandscapeControllerView() {
+      stopAcc();
       var html =
         "<button type='button' class='controllerButton' id='controllerButtonA'>A</button>" +
         "<button type='button' class='controllerButton' id='controllerButtonB'>B</button>" +
@@ -399,6 +461,9 @@
       document.getElementById('controllerButtonS').onclick = function(){ buttonPressed("3"); };
       document.getElementById('controllerButtonN').onclick = function(){ buttonPressed("1"); };
       document.getElementById('controllerButtonE').onclick = function(){ buttonPressed("2"); };
+
+      // Update views and log
+      previousView = currentView;
       currentView = "landscape";
       updateView(currentView);
       console.log('Landscape game controller view rendered');
