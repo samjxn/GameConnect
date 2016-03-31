@@ -8,15 +8,15 @@ import gameconnect.server.io.MessageContentTypes.MessageContent;
  */
 public class DisconnectMessage extends Message {
     
-    MessageContent content;
+    MessageContent content = null;
     
-    public DisconnectMessage(String groupId, String sourceType, String messageType) {
-        super(groupId, sourceType, messageType);
+    public DisconnectMessage(String groupId) {
+        super(groupId, "backend", "disconnect");
     }
 
     @Override
     public MessageContent getContent() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return null;
     }
     
     

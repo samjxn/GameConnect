@@ -1,6 +1,7 @@
 package gameconnect.server;
 
 import gameconnect.server.context.Context;
+import gameconnect.server.io.MessageTypes.DisconnectMessage;
 import gameconnect.server.io.MessageTypes.Message;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -153,6 +154,12 @@ public class ClientGroup {
                 e.printStackTrace();
             }
         }
+    }
+    
+    public void disconnect(Client c) {
+        clients.remove(c);
+        sendToAll(new DisconnectMessage(groupId), DisconnectMessage.class);
+        clients.clear();
     }
     
     public boolean inContext(){

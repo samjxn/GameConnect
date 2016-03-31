@@ -44,7 +44,7 @@ public class Client {
      * @throws java.io.IOException 
      */
     public void sendMessage(Message m, Type t) throws java.io.IOException {
-        sendText(ConnectionHandler.gsonSingleton().toJson(this, t));
+        sendText(ConnectionHandler.gsonSingleton().toJson(m, t));
     }
 
     public ClientGroup getGroup() {

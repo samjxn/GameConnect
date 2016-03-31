@@ -26,7 +26,7 @@ import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 @ServerEndpoint("/gameconnect")
 public class ConnectionHandler {
 
-    private static Gson gson;
+    public static Gson gson;
 
     public static synchronized Gson gsonSingleton() {
         if (gson == null) {
@@ -235,6 +235,12 @@ public class ConnectionHandler {
     @OnClose
     public void onClose(Session session) {
         println("Session " + session.getId() + " has ended");
+        Client c = getClient(session);
+        if(c != null && c.getGroup() != null) {
+            c.getGroup().disconnect(c);
+            
+        }
+        clients.remove(session);
     }
 
     protected Client getClient(Session sesh) {
