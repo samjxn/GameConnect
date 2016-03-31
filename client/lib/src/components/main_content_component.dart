@@ -17,13 +17,13 @@ class _MainContentComponent
 
     //TODO:  Do something better than a switch statement
     switch (store.gameConnectClientStore.currentComponent) {
-      case 'groupingScreenComponent':
+      case Screens.GROUPING_SCREEN:
         currentComponent = pairingScreenComponent({'actions':actions, 'store':store});
         break;
-      case 'levelSelectScreenComponent':
+      case Screens.LEVEL_SELECT_SCREEN:
         currentComponent = leveSelectScreenComponent({'actions':actions, 'store':store});
         break;
-      case 'gameDisplayScreenComponent':
+      case Screens.GAME_DISPLAY:
         currentComponent = gameDisplayComponent({'actions':actions, 'store':store});
         break;
       default:

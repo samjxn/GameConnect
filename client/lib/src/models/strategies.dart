@@ -14,9 +14,16 @@ abstract class MessageReceivedStrategy {
 }
 
 class GroupCodeReceivedStrategy extends MessageReceivedStrategy {
-  GroupCodeReceivedStrategy.GroupingCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
+  GroupCodeReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
     _actionsToComplete.add(_actions.groupingCodeReceived);
     _payloads[_actions.groupingCodeReceived] = jsonData['content']['groupingCode'];
+  }
+}
+
+class GroupingAcceptedStrategy extends MessageReceivedStrategy {
+  GroupingAcceptedStrategy(GameConnectClientActions _actions, Map jsonData) {
+    _actionsToComplete.add(_actions.setCurrentComponent);
+    _payloads[_actions.setCurrentComponent] = Screens.LEVEL_SELECT_SCREEN;
   }
 }
 

@@ -8,3 +8,4 @@ import 'dart:convert';
 part 'models/group_code.dart';
 part 'models/ws_message_delegator.dart';
 part 'models/strategies.dart';
+part 'models/components.dart';
