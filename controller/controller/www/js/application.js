@@ -13,6 +13,7 @@
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', init, false);
 
+    // Initialize
     function init() {
 
       // Clear global variables
@@ -57,6 +58,7 @@
           return;
         }
 
+        // Determine message type
         switch(data.messageType) {
           case "join-group":
             joinGroup(data);
@@ -64,6 +66,9 @@
           case "context-list":
             updateGameList(data);
             renderGameSelectView();
+            break;
+          case "context-selected":
+            console.log("Server recieved game choice");
             break;
           case "game-mode":
             gameConfig(data);
@@ -76,7 +81,7 @@
             break;
           default:
             console.log("Message type not recognized");
-            console.log(event);
+            console.log(data);
         }
       };
 
@@ -88,7 +93,13 @@
 
     }
 
-    /* ---------------------------------- Local Functions ---------------------------------- */
+    // Reset controller
+    function reset() {
+      stopAcc();
+      init();
+    }
+
+    /* ---------------------------------- Back Button Functionality ---------------------------------- */
 
     // Back Key Press Event Handler
     function onBackKeyDown() {
@@ -101,26 +112,44 @@
           renderHomeView();
           break;
         case "select":
-          navigator.notification.confirm("Are you sure you want to leave this session and return to the pairing screen?", reset, "Confirm", ["Yes", "Cancel"]);
+          navigator.notification.confirm("Are you sure you want to leave this session and return to the pairing screen?", onLeaveSessionDialog, "End Session", ["Yes", "Cancel"]);
           break;
         case "portrait":
           if(previousView === "debug") {
             renderDebugView();
           } else {
-            navigator.notification.confirm("Are you sure you want to end the game?", renderGameSelectView, "End Game", ["Yes", "Cancel"]);
+            navigator.notification.confirm("Are you sure you want to end the game?", onEndGameDialog, "End Game", ["Yes", "Cancel"]);
           }
           break;
         case "landscape":
           if(previousView === "debug") {
             renderDebugView();
           } else {
-            navigator.notification.confirm("Are you sure you want to end the game?", renderGameSelectView, "End Game", ["Yes", "Cancel"]);
+            navigator.notification.confirm("Are you sure you want to end the game?", onEndGameDialog, "End Game", ["Yes", "Cancel"]);
           }
           break;
         default:
           navigator.app.exitApp();
       }
     }
+
+    function onEndGameDialog(buttonIndex) {
+      if (buttonIndex === 1) {  // confirm
+        renderGameSelectView();
+      } else {
+        return;
+      }
+    }
+
+    function onLeaveSessionDialog(buttonIndex) {
+      if (buttonIndex === 1) {  // confirm
+        reset();
+      } else {
+        return;
+      }
+    }
+
+    /* ---------------------------------- Pairing Code Handling ---------------------------------- */
 
     // Check pairing input field any time the value changes
     function checkPairingCode() {
@@ -172,6 +201,7 @@
       webSocket.send(JSON.stringify(data));
     }
 
+    // Timeout event for no server response
     function pairTimeout() {
       document.getElementById('pairButton').disabled = true;
       document.getElementById('pairButton').className = "";
@@ -183,6 +213,9 @@
       console.log("Pairing request timed out");
     }
 
+    /* ---------------------------------- Game Selection Handling ---------------------------------- */
+
+    // Get and highlight selected list item
     function selectListItem(event) {
       var selected;
 
@@ -215,19 +248,63 @@
       console.log('%c' + JSON.stringify(data), 'color: #0080FF');
 
       document.getElementById('status').innerHTML = "Waiting for Server";
-      document.getElementById('message').style.color = '#DC0000';
-      document.getElementById('message').className = "blink";
+      document.getElementById('status').style.color = '#4CAF50';
+      document.getElementById('status').className = "blink";
       document.getElementById('playButton').disabled = true;
       timeout = setTimeout(selectTimeout, 30000);               // set timeout 30 seconds
 
       webSocket.send(JSON.stringify(data));
     }
 
+    // Timeout event for no server response
     function selectTimeout() {
       document.getElementById('playButton').disabled = false;
-      document.getElementById('message').innerHTML = "Server Timed Out";
-      document.getElementById('message').style.color = '#4CAF50';
+      document.getElementById('status').innerHTML = "Server Timed Out";
+      document.getElementById('status').className = "";
+      document.getElementById('status').style.color = '#DC0000';
     }
+
+    /* ---------------------------------- Game Controller Handling ---------------------------------- */
+
+    // Response handler for controller buttons
+    function buttonPressed(button) {
+      var a = false;
+      var b = false;
+      var d = 0;
+
+      // Determine which button was pressed
+      switch(button) {
+        case "a":
+          a = true;
+          break;
+        case "b":
+          b = true;
+          break;
+        default:
+          d = button;
+      }
+
+      // Prepare JSON
+      var data = {  "groupId": groupId,
+                    "clientId": clientId,
+                    "ping": null,
+                    "sourceType":"controller",
+                    "messageType": "controller-snapshot",
+                    "content":
+                    {
+                      "d-pad-input": d,
+                      "a-pressed": a,
+                      "b-pressed": b
+                    }
+      }
+
+      // Send to server
+      webSocket.send(JSON.stringify(data));
+      console.log(button + " button pressed");
+      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
+    }
+
+    /* ---------------------------------- Debug Handling ---------------------------------- */
 
     // Test event for debug page
     function testEvent() {
@@ -248,42 +325,9 @@
       document.getElementById('debugInput').value = "";
     }
 
-    function buttonPressed(button) {
-      var a = false;
-      var b = false;
-      var d = 0;
+    /* ---------------------------------- WebSocket Response Handling ---------------------------------- */
 
-      switch(button) {
-        case "a":
-          a = true;
-          break;
-        case "b":
-          b = true;
-          break;
-        default:
-          d = button;
-      }
-
-      var data = {  "groupId": groupId,
-                    "clientId": clientId,
-                    "ping": null,
-                    "sourceType":"controller",
-                    "messageType": "controller-snapshot",
-                    "content":
-                    {
-                      "d-pad-input": d,
-                      "a-pressed": a,
-                      "b-pressed": b
-                    }
-      }
-      webSocket.send(JSON.stringify(data));
-      console.log(button + " button pressed");
-      console.log('%c' + JSON.stringify(data), 'color: #0080FF');
-    }
-
-    /* ---------------------------------- WebSocket Response Handlers ---------------------------------- */
-
-    // After receiving a Join Group messsage from the server
+    // Server has sent a join group success messsage
     function joinGroup(data) {
       clearTimeout(timeout);
       if(data.content.groupingApproved === true) {
@@ -293,16 +337,6 @@
         document.getElementById('message').innerHTML = "Success";
         document.getElementById('pairButton').className = "button";
         document.getElementById('message').style.color = '##4CAF50';
-
-        // temp data for demo
-        /*var temp_data = '{  "content":' +
-                      '{' +
-                        '"games": ["snake", "jetpack hero", "potato hunter", "flappy bird", "airplane", "chess", "checkers", "banana phone"]' +
-                      '}' +
-        '}';*/
-
-        //gameList(JSON.parse(temp_data));
-
       } else {
         console.log("Failed to join group");
         document.getElementById('message').innerHTML = "Failed to Join Group";
@@ -312,7 +346,7 @@
       }
     }
 
-    // Server has sent list of games
+    // Server has sent a list of games
     function updateGameList(data) {
       console.log("Recieved list of games");
       gamesList = data.content.games;
@@ -345,15 +379,9 @@
       }
     }
 
-    // Server has sent us an error message
+    // Server has sent an error message
     function serverError(data) {
       console.log("Server responded with error message");
-    }
-
-    // Reset controller
-    function reset() {
-      stopAcc();
-      init();
     }
 
     /* ---------------------------------- Rendering Views ---------------------------------- */
@@ -432,10 +460,20 @@
 
     // Render the Portrait Game Contoller view with Motion Remote (unfinished)
     function renderPortraitControllerView() {
-      stopAcc();
       var html =
-        "<h1>Motion Remote</h1>";
+        "<button type='button' class='controllerButton' id='portraitButtonA'>A</button>" +
+        "<button type='button' class='controllerButton' id='portraitButtonB'>B</button>" +
+        "<button type='button' class='controllerButton' id='portraitButtonN'>&#8593</button>" +
+        "<button type='button' class='controllerButton' id='portraitButtonW'>&#8592</button>" +
+        "<button type='button' class='controllerButton' id='portraitButtonE'>&#8594</button>" +
+        "<button type='button' class='controllerButton' id='portraitButtonS'>&#8595</button>";
       document.getElementById('application').innerHTML = html;
+      document.getElementById('portraitButtonA').onclick = function(){ buttonPressed("a"); };
+      document.getElementById('portraitButtonB').onclick = function(){ buttonPressed("b"); };
+      document.getElementById('portraitButtonN').onclick = function(){ buttonPressed("1"); };
+      document.getElementById('portraitButtonW').onclick = function(){ buttonPressed("4"); };
+      document.getElementById('portraitButtonE').onclick = function(){ buttonPressed("2"); };
+      document.getElementById('portraitButtonS').onclick = function(){ buttonPressed("3"); };
 
       // Update views and log
       previousView = currentView;
@@ -446,14 +484,13 @@
 
     // Render the Landscape Game Controller view with Steering Wheel
     function renderLandscapeControllerView() {
-      stopAcc();
       var html =
-        "<button type='button' class='controllerButton' id='controllerButtonA'>A</button>" +
-        "<button type='button' class='controllerButton' id='controllerButtonB'>B</button>" +
-        "<button type='button' class='controllerButton' id='controllerButtonW'>&#8592</button>" +
-        "<button type='button' class='controllerButton' id='controllerButtonS'>&#8595</button>" +
-        "<button type='button' class='controllerButton' id='controllerButtonN'>&#8593</button>" +
-        "<button type='button' class='controllerButton' id='controllerButtonE'>&#8594</button>";
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonA'>A</button>" +
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonB'>B</button>" +
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonW'>&#8592</button>" +
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonS'>&#8595</button>" +
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonN'>&#8593</button>" +
+        "<button type='button' class='controllerButtonLandscape' id='controllerButtonE'>&#8594</button>";
       document.getElementById('application').innerHTML = html;
       document.getElementById('controllerButtonA').onclick = function(){ buttonPressed("a"); };
       document.getElementById('controllerButtonB').onclick = function(){ buttonPressed("b"); };

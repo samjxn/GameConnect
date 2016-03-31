@@ -190,15 +190,13 @@ ul li {
   margin: 3%;
 }
 
-/* ---------- GAME VIEWS ---------- */
+/* ---------- PORTRAIT CONTROLLER ---------- */
 
 .controllerButton {
   position: absolute;
   border-radius: 20px 20px 20px 20px;
   width: 70px;
   height: 70px;
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
   font-weight: bold;
   outline: none;
 }
@@ -209,6 +207,54 @@ ul li {
   color: white;
 }
 
+#portraitButtonA {
+  top: 70px;
+  left: 40%;
+}
+
+#portraitButtonB {
+  top: 180px;
+  left: 40%;
+}
+
+#portraitButtonN {
+  bottom: 190px;
+  left: 40%;
+}
+
+#portraitButtonW {
+  bottom: 120px;
+  left: 20%;
+}
+
+#portraitButtonE {
+  bottom: 120px;
+  left: 60%;
+}
+
+#portraitButtonS {
+  bottom: 50px;
+  left: 40%;
+}
+
+/* ---------- LANDSCAPE CONTROLLER ---------- */
+
+.controllerButtonLandscape {
+  position: absolute;
+  border-radius: 20px 20px 20px 20px;
+  width: 70px;
+  height: 70px;
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  font-weight: bold;
+  outline: none;
+}
+
+.controllerButtonLandscape:active {
+  background-color: #BBBBBB;
+  border: none;
+  color: white;
+}
 
 #controllerButtonA {
   top: 70px;
