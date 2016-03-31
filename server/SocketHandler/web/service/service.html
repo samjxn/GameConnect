@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Echo Chamber</title>
+        <title>GC-SERVICE</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
     </head>
     <body>
        
+        <div style="font-weight: bold">
+            <span style="color:green">sent</span> <span>received</span> <span style="color:red">error</span>
+        </div>
         <div>
-            <input type="text" id="messageinput"/>
+            <textarea id="messageinput" style="width:400px; height:200px"></textarea>
         </div>
         <div>
             <button type="button" onclick="openSocket();" >Open</button>
@@ -28,7 +31,7 @@
             function openSocket(){
                 // Ensures only one connection is open at a time
                 if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
-                   writeResponse("WebSocket is already opened.");
+                   writeResponse("<span style=\"color:red\">WebSocket is already opened.</span>");
                     return;
                 }
                 // Create a new instance of the websocket
@@ -52,7 +55,7 @@
                 };
  
                 webSocket.onclose = function(event){
-                    writeResponse("Connection closed");
+                    writeResponse("<span style=\"color:red\">Connection closed</span>");
                 };
             }
            
@@ -62,6 +65,7 @@
             function send(){
                 var text = document.getElementById("messageinput").value;
                 webSocket.send(text);
+                writeResponse("<span style=\"color:green\">"+text+"</span>");
             }
            
             function closeSocket(){
