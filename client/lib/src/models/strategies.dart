@@ -50,3 +50,15 @@ class DoNothingStrategy extends MessageReceivedStrategy {
     _payloads = {};
   }
 }
+
+class ControllerInputReceivedStrategy extends MessageReceivedStrategy {
+
+  ControllerInputReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
+
+    ControllerSnapshot snapshot = new ControllerSnapshot.fromJsonMap(jsonData['content']);
+
+    _actionsToComplete.add(_actions.controllerSnapshotReceived);
+    _payloads[_actions.controllerSnapshotReceived] = snapshot;
+
+  }
+}

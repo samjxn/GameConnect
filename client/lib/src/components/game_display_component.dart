@@ -8,9 +8,15 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
   redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
 
-  render() => react.div({'className':'game-display-area'}, [
-    react.div({'className':'game-content'}, [
-      store.gameDisplayStore.activeGameId
-    ]),
-  ]);
+  render() {
+    var snapshot = store.gameDisplayStore.snapshot ?? "No input";
+
+    return react.div({'className':'game-display-area'}, [
+      react.div({'className':'game-content'}, [
+        store.gameDisplayStore.activeGameId + " goes here...",
+        react.br({},[]),
+        react.div({}, snapshot.toString())
+      ]),
+    ]);
+  }
 }

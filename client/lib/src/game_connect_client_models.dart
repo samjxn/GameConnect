@@ -10,3 +10,4 @@ part 'models/ws_message_delegator.dart';
 part 'models/strategies.dart';
 part 'models/screen_names.dart';
 part 'models/game_ids.dart';
+part 'models/controller_snapshot.dart';
