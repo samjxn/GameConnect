@@ -15,15 +15,18 @@ class _MainContentComponent
 
     var currentComponent;
 
+    print("GETTING CURRENT COMPONENT:  ${store.gameConnectClientStore.currentComponent}");
+
     //TODO:  Do something better than a switch statement
     switch (store.gameConnectClientStore.currentComponent) {
-      case 'groupingScreenComponent':
+      case Screens.GROUPING_SCREEN:
         currentComponent = pairingScreenComponent({'actions':actions, 'store':store});
         break;
-      case 'levelSelectScreenComponent':
+      case Screens.LEVEL_SELECT_SCREEN:
         currentComponent = leveSelectScreenComponent({'actions':actions, 'store':store});
         break;
-      case 'gameDisplayScreenComponent':
+      case Screens.GAME_DISPLAY:
+        print("SETTING GAME DISPLAY COMPONENT");
         currentComponent = gameDisplayComponent({'actions':actions, 'store':store});
         break;
       default:

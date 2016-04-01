@@ -10,17 +10,19 @@ import 'dart:async';
 part 'stores/grouping_screen_store.dart';
 part 'stores/game_connect_client_store.dart';
 part 'stores/level_select_store.dart';
+part 'stores/game_display_store.dart';
 
 class GameConnectClientStores {
   GroupingScreenStore groupingScreenStore;
   GameConnectClientStore gameConnectClientStore;
   LevelSelectStore levelSelectStore;
+  GameDisplayStore gameDisplayStore;
 
   GameConnectClientStores(
       GameConnectClientActions actions, GameConnectClientApi api) {
     groupingScreenStore = new GroupingScreenStore(actions, api);
     gameConnectClientStore = new GameConnectClientStore(actions, api);
     levelSelectStore = new LevelSelectStore();
-
+    gameDisplayStore = new GameDisplayStore(actions, api);
   }
 }

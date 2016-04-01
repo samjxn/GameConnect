@@ -8,7 +8,7 @@ main() {
   reactClient.setClientConfiguration();
 
   if (Uri.base.queryParameters['debug'] == true){
-    // Todo:  add debug state
+
   } else {
 
   }
