@@ -14,227 +14,275 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gameconnect.server.io.MessageContentTypes.ErrorMessageContent;
-import gameconnect.server.io.MessageContentTypes.GroupingApprovedMessageContent;
-import gameconnect.server.io.MessageContentTypes.GroupingCodeMessageContent;
+import gameconnect.server.context.SnakeContext;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
-import gameconnect.server.io.MessageTypes.Message;
-import gameconnect.server.io.MessageTypes.OutgoingMessage;
-import gameconnect.server.io.SendStrategies.SendStrategy;
-import gameconnect.server.io.SendStrategies.ToClientSender;
-import gameconnect.server.io.SendStrategies.ToGroupSender;
-import gameconnect.server.io.SendStrategies.ToSessionSender;
 
 /**
  *
- * @author david boschwitz, sam jackson
+ * @author davidboschwitz
  */
 @ServerEndpoint("/gameconnect")
 public class ConnectionHandler {
-    
-    private static Gson gson;
-    
+
+    public static Gson gson;
+
+    public static synchronized Gson gsonSingleton() {
+        if (gson == null) {
+            gson = new GsonBuilder().create();
+        }
+        return gson;
+    }
+
     /**
      * Maps 5-digit grouping code to groups
      */
     private static HashMap<String, ClientGroup> openGroups = null;
-    
+
     /**
      * Maps group ids to Group objects
      */
     protected static HashMap<String, ClientGroup> clientGroups = null;
-    
-    /**
-     * Maps matching client ids to Client objects
-     */
-    protected static HashMap<String, Client> clientMap = null;
 
+    /**
+     *
+     */
+    protected static HashMap<Session, Client> clients = null;
+
+    /**
+     *
+     */
     private final int MAX_OPEN_CONNECTIONS = 100000;
-        
-    public ConnectionHandler() {
-        if (ConnectionHandler.gson == null) {
-            ConnectionHandler.gson = new GsonBuilder().create();
-        }
+
+    /**
+     * we can treat this like a main() method
+     */
+    static {
         if (openGroups == null) {
-            ConnectionHandler.openGroups = new HashMap<>();
+            openGroups = new HashMap<>();
         }
         if (clientGroups == null) {
-            ConnectionHandler.clientGroups = new HashMap<>();
-        } if (clientMap == null) {
-            ConnectionHandler.clientMap = new HashMap<>();
+            clientGroups = new HashMap<>();
         }
+        if (clients == null) {
+            clients = new HashMap<>();
+        }
+        gson = new GsonBuilder().create();
     }
-    
+
     /**
-     * @OnOpen allows us to intercept the creation of a new session.
-     * The session class allows us to send data to the user.
-     * In the method onOpen, we'll let the user know that the handshake was 
-     * successful.
-     *
-     * @param session
+     * @OnOpen allows us to intercept the creation of a new session. The session
+     * class allows us to send data to the user. In the method onOpen, we'll let
+     * the user know that the handshake was successful.
      */
     @OnOpen
-    public void onOpen(Session session){
-        println(session.getId() + " has opened a connection"); 
+    public void onOpen(Session session) {
+        println(session.getId() + " has opened a connection");
         try {
             session.getBasicRemote().sendText("Connection Established!");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
- 
+
     /**
-     * When a user sends a message to the server, this method will intercept the message
-     * and allow us to react to it. For now the message is read as a String.
-     *
-     * @param messageJson
-     * @param session
+     * When a user sends a message to the server, this method will intercept the
+     * message and allow us to react to it. For now the message is read as a
+     * String.
      */
     @OnMessage
-    public void onMessage(String messageJson, Session session){      
+    public void onMessage(String messageJson, Session session) {
         println("Message from " + session.getId() + ": " + messageJson);
-        Message incommingMessage;
+
+        Message incomingMessage;
         try {
-            incommingMessage = gson.fromJson(messageJson, Message.class);
+            incomingMessage = gson.fromJson(messageJson, DefaultMessage.class);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            incommingMessage = new Message(null, null, null, null);
-        }
-        
-        // Messages should always have a messageType and sourceType.
-        if(incommingMessage.getSourceType() == null || 
-                incommingMessage.getMessageType() == null) {
+            //incomingMessage = new Message(null, null, null, null);
+            //this is pointless, will just comment out and return early
             return;
         }
-        
+
+        // Messages should always have a messageType and sourceType.
+        if (incomingMessage.getSourceType() == null
+                || incomingMessage.getMessageType() == null) {
+            return;
+        }
+
         OutgoingMessage response = null;
         SendStrategy sender = null;
-        
+        boolean sendGameList = false;
+        boolean sent = false;
+
         //TODO:  Replace switch block with a design pattern.
-        switch(incommingMessage.getMessageType()){
+        switch (incomingMessage.getMessageType()) {
             case MessageType.OPEN_NEW_GROUP:
-                if (incommingMessage.getGroupId() == null &&
-                        incommingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
-                
-                String groupingCode = Integer.toString(ConnectionHandler.openGroups.size());
-               
-                Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, groupingCode);
-                
-                Client client = clientClientGroupTuple.item0;
-                ClientGroup group = clientClientGroupTuple.item1;
-                
-                sender = new ToClientSender(client);
-                response = new OutgoingMessage(group.groupId, SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE, 
-                        new GroupingCodeMessageContent(groupingCode));
-                
-                } else{
-              // Message already had a groupId or Message is not from PC_Client
-                }    
+                if (incomingMessage.getGroupId() == null
+                        && incomingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
+
+                    String groupingCode = Integer.toString(openGroups.size());
+
+                    Tuple<Client, ClientGroup> clientClientGroupTuple = createOpenGroup(session, groupingCode);
+
+                    Client client = clientClientGroupTuple.item0;
+                    ClientGroup group = clientClientGroupTuple.item1;
+
+                    clients.put(session, client);
+                    sender = new ToClientSender(client);
+                    response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE,
+                            new GroupingCodeMessageContent(groupingCode));
+
+                } else {
+                    // Message already had a groupId or Message is not from PC_Client
+                }
                 break;
-                
+
             case MessageType.JOIN_GROUP:
-                if (incommingMessage.getGroupId() == null && 
-                        incommingMessage.getSourceType().equals(SourceType.CONTROLLER) /*&& 
-                        incommingMessage.getContent() != null*/){
+                if (incomingMessage.getGroupId() == null
+                        && incomingMessage.getSourceType().equals(SourceType.CONTROLLER) /*&& 
+                        incommingMessage.getContent() != null*/) {
                     // get the grouping code from the message
                     GroupingCodeMessage incommingGroupCodeMessage = gson.fromJson(messageJson, GroupingCodeMessage.class);
-                    
+
                     GroupingCodeMessageContent content = incommingGroupCodeMessage.getContent();
                     String groupingCode = content.getGroupingCode();
+                    // trim the zeroes
 
-                    ClientGroup group = ConnectionHandler.openGroups.get(groupingCode);
-                    
-                    
+                    ClientGroup group = openGroups.get(groupingCode);
+
                     // find the open group in the hash map
                     // put the client into the group.
-                    if (group != null){
-                        Client controllerClient = new Client(ClientType.MOBILE, session, group);
-                        
+                    if (group != null) {
+                        Client controllerClient;
+                        if (getClient(session) == null) {
+                            clients.put(session, controllerClient = new Client(ClientType.MOBILE, session, group));
+                        } else {
+                            controllerClient = getClient(session);
+                        }
+                        String clientId = ""; // TODO:  Remove when clients have ids
+
                         group.giveClient(controllerClient);
-                        
+                        controllerClient.clientGrouping = group;
                         //TODO:  Change message content
                         // respond whether or not that worked.
-                        println("Grouping approved.  Making message.");
                         sender = new ToGroupSender(controllerClient);
-                        response = new OutgoingMessage(group.groupId, SourceType.BACKEND, 
-                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, controllerClient.getId()));
-                    
+                        response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND,
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
+                        sendGameList = true;
                     } else {
                         sender = new ToSessionSender(session);
                         response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Open Group did not exist"));
                     }
-                    
+
                 }
                 break;
-                
-            
+
+            case MessageType.SET_CONTEXT:
+                SetContextMessage scm = gson.fromJson(messageJson, SetContextMessage.class);
+                switch (scm.getContent().getContextName()) {
+                    case "snake":
+                        if (getClient(session) != null && getClient(session).getGroup() != null) {
+                            getClient(session).getGroup().sendToAll("{ \"groupId\": "+getClient(session).getGroup().getGroupID()+", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"snake\" } }");
+                            getClient(session).getGroup().context = new SnakeContext(getClient(session).getGroup());
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
+                    default:
+                        sender = new ToSessionSender(session);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Invalid context name!"));
+                        break;
+                }
+
+                break;
+
+            default:
+                //just let the context try to handle it
+                if (getClient(session) != null && getClient(session).getGroup() != null && getClient(session).getGroup().context != null) {
+                    sent |= getClient(session).getGroup().context.handleMessage(incomingMessage, messageJson, session);
+                }
         }
-        
+
         try {
-            
-            if (response == null){
-                sender = new ToSessionSender(session);
-                response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, 
-                        new ErrorMessageContent("Message not Recognized."));
-                
+            if (!sent) {
+                if (response == null) {
+                    sender = new ToSessionSender(session);
+                    response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR,
+                            new ErrorMessageContent("Message not Recognized."));
+
+                }
+                response.send(gson, sender);
             }
-            
-            response.send(gson, sender);
-            
+
+            if (sendGameList) {
+                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",\"flappy\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\"] } }");
+            }
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
- 
+
     /**
      * The user closes the connection.
-     * 
+     *
      * Note: you can't send messages to the client from this method
-     * @param session
      */
     @OnClose
-    public void onClose(Session session){
-        println("Session " +session.getId()+" has ended");
+    public void onClose(Session session) {
+        println("Session " + session.getId() + " has ended");
+        Client c = getClient(session);
+        if(c != null && c.getGroup() != null) {
+            c.getGroup().disconnect(c);
+            
+        }
+        clients.remove(session);
     }
-    
-    protected Client getClient(Session sesh){
-        //TODO: Search hashmap clients to find client
+
+    protected Client getClient(Session sesh) {
+        if (sesh != null) {
+            return clients.get(sesh);
+        }
         return null;
     }
-    
-    private static void println(String s){
-        System.out.println("[GameConnect]: "+ s);
+
+    private static void println(String s) {
+        System.out.println("[GameConnect]: " + s);
     }
-    
+
     /**
      * Creates a new Group
+     *
      * @param clientSession
-     * @return 
+     * @return
      */
     private Tuple<Client, ClientGroup> createOpenGroup(Session clientSession, String groupingCode) {
-        
-        if (ConnectionHandler.openGroups.size() >= this.MAX_OPEN_CONNECTIONS) {
+
+        if (openGroups.size() >= MAX_OPEN_CONNECTIONS) {
             throw new IllegalStateException("Max open connections reached.");
         }
 
-        
-        ClientGroup group = new ClientGroup();
-        Client client = new Client(ClientType.PC, clientSession, group);
-        group.giveClient(client);
-        
-        ConnectionHandler.openGroups.put(groupingCode, group);
-        ConnectionHandler.clientGroups.put(group.groupId, group);
-        ConnectionHandler.clientMap.put(client.getId(), client);
-        return new Tuple<>(client, group);
+        String groupId = Integer.toString(clientGroups.size());
+
+        ClientGroup group = new ClientGroup(groupId);
+        Client c = new Client(ClientType.PC, clientSession, group);
+        group.giveClient(c);
+
+        openGroups.put(groupingCode, group);
+        clientGroups.put(group.getGroupID(), group);
+
+        return new Tuple<Client, ClientGroup>(c, group);
     }
-    
+
     private class Tuple<S, T> {
+
         protected S item0;
         protected T item1;
-        
+
         protected Tuple(S item0, T item1) {
             this.item0 = item0;
             this.item1 = item1;

@@ -1,10 +1,13 @@
 package gameconnect.server;
 
 import gameconnect.server.context.Context;
+import gameconnect.server.io.MessageTypes.DisconnectMessage;
+import gameconnect.server.io.MessageTypes.Message;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.websocket.Session;
+import java.lang.reflect.Type;
 
 /**
  *
@@ -12,29 +15,52 @@ import javax.websocket.Session;
  */
 public class ClientGroup {
 
-    private static Integer clientGroupCount = 0;
-
-
     /**
      * List of all clients within this group
      */
-    List<Client> clients;
+    public List<Client> clients;
 
     /**
      * The group identifier
      */
-    String groupId;
+    private String groupId;
+    
+    public String getGroupID(){
+        return groupId;
+    }
 
-    Context context = null;
+    public Context context = null;
 
-    ClientGroup() {
-        ClientGroup.clientGroupCount++;
-
-        this.groupId = ClientGroup.clientGroupCount.toString();
+    /**
+     * 
+     * @param id 
+     */
+    @Deprecated
+    protected ClientGroup(String id) {
+        this.groupId = id;
         this.clients = new ArrayList<>();
     }
 
-    void giveClient(Client c) {
+    /**
+     * 
+     * @param openingClient
+     * @param groupId 
+     */
+    protected ClientGroup(Client openingClient, String groupId) {
+        if (openingClient == null || groupId == null) {
+            throw new NullPointerException();
+        }
+
+        this.groupId = groupId;
+        this.clients = new ArrayList<>();
+        clients.add(openingClient);
+    }
+
+    /**
+     * 
+     * @param c 
+     */
+    protected void giveClient(Client c) {
         if (c == null) {
             throw new NullPointerException();
         }
@@ -44,24 +70,49 @@ public class ClientGroup {
         }
     }
 
+    /**
+     * 
+     * @param msg 
+     */
     public void sendToAll(String msg) {
         if (msg == null) {
             throw new NullPointerException();
         }
-        
+
         for (Client c : this.clients) {
             try {
                 c.session.getBasicRemote().sendText(msg);
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (IllegalStateException e) {
-                // This is a temporary fix for not removing closed sessions.
-                // TODO:  REMOVE CLOSED SESSIONS
             }
         }
     }
+    
+    /**
+     * 
+     * @param m
+     * @param t 
+     */
+    public void sendToAll(Message m, Type t){
+        if (m == null || t == null) {
+            throw new NullPointerException();
+        }
+        if(false){
+            //implement checking to ensure type t is a valid subclass of Message
+        }
+
+        for (Client c : this.clients) {
+            try {
+                c.sendMessage(m, t);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Send message to everyone in group, except the sender
+     *
      * @param msg
      * @param s
      */
@@ -78,10 +129,40 @@ public class ClientGroup {
                 c.session.getBasicRemote().sendText(msg);
             } catch (IOException e) {
                 e.printStackTrace();
-            }  catch (IllegalStateException e) {
-                // This is a temporary fix for not removing closed sessions.
-                // TODO:  REMOVE CLOSED SESSIONS
             }
         }
+    }
+
+    /**
+     * Send message to everyone in group, except the sender
+     *
+     * @param m
+     * @param s
+     */
+    public void sendToAll(Message m, Type t, Session s) {
+        if (m == null || s == null || t == null) {
+            throw new NullPointerException();
+        }
+
+        for (Client c : this.clients) {
+            if (c.session.equals(s)) {
+                continue;
+            }
+            try {
+                c.sendMessage(m, t);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void disconnect(Client c) {
+        clients.remove(c);
+        sendToAll(new DisconnectMessage(groupId), DisconnectMessage.class);
+        clients.clear();
+    }
+    
+    public boolean inContext(){
+        return context != null;
     }
 }

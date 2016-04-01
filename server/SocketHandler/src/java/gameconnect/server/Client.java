@@ -1,45 +1,62 @@
 package gameconnect.server;
 
+import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
+import java.lang.reflect.Type;
+
 /**
  *
  * @author davidboschwitz
  * @author Sam Jackson
  */
 public class Client {
-    
+
     // TODO:  give client ids
-    private static Integer clientCount = 0;
     protected Session session;
     protected final ClientType clientType;
     protected ClientGroup clientGrouping;
-    protected String clientId;
-    
+
     /**
-     * 
+     *
      * @param type
      * @param session
-     * @param group 
+     * @param group
      */
     public Client(ClientType type, Session session, ClientGroup group) {
-        Client.clientCount++;
-
         this.clientType = type;
         this.session = session;
         this.clientGrouping = group;
-        this.clientId = Client.clientCount.toString();
     }
-    
+
+    /**
+     * Sends plain-text to the client
+     * @param msg String to send to the client
+     * @throws java.io.IOException 
+     */
     public void sendText(String msg) throws java.io.IOException {
         session.getBasicRemote().sendText(msg);
     }
-    
+
+    /**
+     * Sends a Message object (w/ JSON) to the client
+     * @param m Message object to send
+     * @param t Type of message ([MyMessage.class])
+     * @throws java.io.IOException 
+     */
+    public void sendMessage(Message m, Type t) throws java.io.IOException {
+        sendText(ConnectionHandler.gsonSingleton().toJson(m, t));
+    }
+
     public ClientGroup getGroup() {
-        return this.clientGrouping;
+        return clientGrouping;
     }
-    
-    public String getId() {
-        return this.clientId;
+
+    public ClientType getType() {
+        return clientType;
     }
-    
+
+    public void disconnect() {
+        //TODO: this
+    }
+
 }

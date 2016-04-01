@@ -10,33 +10,25 @@ import javax.websocket.Session;
  *
  * @author davidboschwitz
  */
-public class ChatContext extends Context {
+public class SnakeContext extends Context {
 
-    public ChatContext(ClientGroup group) {
+    public SnakeContext(ClientGroup group) {
         super(group);
-
+        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 3 } }");
         //no limits on number of group members for this context
     }
 
     @Override
     public boolean handleMessage(Message incomingMessage, String msgText, Session session) {
+        boolean rtn = false;
         switch (incomingMessage.getMessageType()) {
-            case MessageType.CHAT_MESSAGE:
-                
+            case "controller-snapshot":
+                //just send it off as is
+                group.sendToAll(msgText, session);
+                rtn = true;
                 break;
-        
         }
-        switch (1) {
-            default:
-                for (Client c : group.clients) {
-                    try {
-                        c.sendText(session.getId() + ": ");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-        }
-        return false;
+        return rtn;
     }
 
     @Override

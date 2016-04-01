@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gameconnect.server.io.MessageContentTypes;
 
 /*  TODO:  This is a stub.  Redo this entirely.
@@ -13,10 +8,15 @@ package gameconnect.server.io.MessageContentTypes;
  */
 
 /**
- *
+ * An abstract class to be the super of all message contents.
+ * Must be extended
  * @author Sam Jackson
  * @author David Boschwitz
  */
-public abstract class MessageContent {
-    
+public class MessageContent {
+    /**
+     * for use by gson library only.
+     */
+    @Deprecated
+    public MessageContent(){}
 }

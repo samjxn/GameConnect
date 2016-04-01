@@ -1,6 +1,7 @@
 package gameconnect.server.context;
 
 import gameconnect.server.ClientGroup;
+import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
 
 /**
@@ -16,7 +17,14 @@ public abstract class Context {
         this.group = group;
     }
 
-    public abstract void handleMessage(String messageJson, Session session);
+    /**
+     * return true if message is properly handled
+     * @param incomingMessage
+     * @param msgText
+     * @param session
+     * @return 
+     */
+    public abstract boolean handleMessage(Message incomingMessage, String msgText, Session session);
 
     public abstract void endContext();
 }
