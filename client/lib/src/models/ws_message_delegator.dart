@@ -20,9 +20,6 @@ class WebSocketMessageDelegator {
       return new DoNothingStrategy(_actions, jsonData);
     }
 
-    switch(jsonData['messageType']) {
-      
-    }
 
     if (jsonData['content']['groupingCode'] != null) {
       return new GroupCodeReceivedStrategy(_actions, jsonData);
@@ -32,6 +29,18 @@ class WebSocketMessageDelegator {
       return new GroupingAcceptedStrategy(_actions, jsonData);
     }
 
-    return null;
+    if (jsonData['messageType'] == "context-selected") {
+      return new GameSelectedStrategy(_actions, jsonData);
+    }
+
+    //{"content":{},"groupId":"0","sourceType":"backend","messageType":"disconnect"}
+    if (jsonData['messageType'] == "disconnect") {
+      return new DisconnectStrategy(_actions);
+    }
+
+    print("COULD NOT CREATE MESSAGE STRATEGY");
+    print("${jsonData.toString()}");
+
+    return new DoNothingStrategy(_actions, jsonData);
   }
 }

@@ -27,6 +27,22 @@ class GroupingAcceptedStrategy extends MessageReceivedStrategy {
   }
 }
 
+class GameSelectedStrategy extends MessageReceivedStrategy {
+
+  GameSelectedStrategy(GameConnectClientActions _actions, Map jsonData) {
+    _actionsToComplete.add(_actions.setCurrentComponent);
+    _actionsToComplete.add(_actions.setActiveGame);
+    _payloads[_actions.setCurrentComponent] = Screens.GAME_DISPLAY;
+    _payloads[_actions.setActiveGame] = jsonData['content']['contextName'];
+  }
+}
+
+class DisconnectStrategy extends MessageReceivedStrategy {
+  DisconnectStrategy(GameConnectClientActions _actions) {
+    _actionsToComplete.add(_actions.onQuit);
+  }
+}
+
 class DoNothingStrategy extends MessageReceivedStrategy {
 
   DoNothingStrategy(GameConnectClientActions _actions, Map jsonData) {

@@ -5,13 +5,12 @@ var gameDisplayComponent = react.registerComponent(()=> new _GameDisplayComponen
 
 class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions, GameConnectClientStores>{
 
-  redrawOn() => [store.gameConnectClientStore];
-
+  redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
 
   render() => react.div({'className':'game-display-area'}, [
     react.div({'className':'game-content'}, [
-
+      store.gameDisplayStore.activeGameId
     ]),
   ]);
 }
