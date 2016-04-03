@@ -13,7 +13,8 @@ class _LevelSelectComponent extends flux.FluxComponent<GameConnectClientActions,
         actions.onQuit('groupingScreenComponent');
       }}, "Simulate Disconnect"),
       react.button({'onClick': (_){
-        actions.setCurrentComponent('gameDisplayScreenComponent');
+        actions.setCurrentComponent(Screens.GAME_DISPLAY);
+        actions.setActiveGame(GameIds.SNAKE);
       }}, "Simulate Game Selected"),
     ]);
   }

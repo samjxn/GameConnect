@@ -63,6 +63,7 @@ class _PairingScreenComponent extends flux
       'className': 'group-screen-content-container',
       'key': 'group-screen-content-container'
     }, [
+      react.div({'className': 'title-wrapper'}, "Game Connect"),
       react.div({'className': 'code-display-wrapper'}, digits),
       react.div({'className': 'group-screen-instruction-wrapper'}, panel)
     ]);

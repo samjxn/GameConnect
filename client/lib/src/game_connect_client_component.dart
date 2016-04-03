@@ -1,7 +1,7 @@
 library game_connect_client.src.game_connect_client_component;
 
 import 'dart:html';
-import 'dart:math' as Math;
+import 'dart:math';
 import 'dart:collection';
 import 'package:client/src/game_connect_client_models.dart';
 import 'package:react/react.dart' as react;
