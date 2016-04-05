@@ -16,6 +16,8 @@ import javax.websocket.server.ServerEndpoint;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gameconnect.server.context.ChatContext;
+import gameconnect.server.context.DebugContext;
 import gameconnect.server.context.SnakeContext;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 
@@ -80,7 +82,7 @@ public class ConnectionHandler {
     public void onOpen(Session session) {
         println(session.getId() + " has opened a connection");
         try {
-            session.getBasicRemote().sendText("Connection Established!");
+            session.getBasicRemote().sendText(gsonSingleton().toJson(new ClientIdMessage(session.getId()), ClientIdMessage.class));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -93,6 +95,8 @@ public class ConnectionHandler {
      */
     @OnMessage
     public void onMessage(String messageJson, Session session) {
+        long ns_start = System.nanoTime();
+        long ms_start = System.currentTimeMillis();
         println("Message from " + session.getId() + ": " + messageJson);
 
         Message incomingMessage;
@@ -106,8 +110,7 @@ public class ConnectionHandler {
         }
 
         // Messages should always have a messageType and sourceType.
-        if (incomingMessage.getSourceType() == null
-                || incomingMessage.getMessageType() == null) {
+        if (incomingMessage.getSourceType() == null || incomingMessage.getMessageType() == null) {
             return;
         }
 
@@ -161,7 +164,6 @@ public class ConnectionHandler {
                         } else {
                             controllerClient = getClient(session);
                         }
-                        String clientId = ""; // TODO:  Remove when clients have ids
 
                         group.giveClient(controllerClient);
                         controllerClient.clientGrouping = group;
@@ -169,7 +171,7 @@ public class ConnectionHandler {
                         // respond whether or not that worked.
                         sender = new ToGroupSender(controllerClient);
                         response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND,
-                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, clientId));
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, controllerClient.getClientID()));
                         sendGameList = true;
                     } else {
                         sender = new ToSessionSender(session);
@@ -181,11 +183,35 @@ public class ConnectionHandler {
 
             case MessageType.SET_CONTEXT:
                 SetContextMessage scm = gson.fromJson(messageJson, SetContextMessage.class);
+                Client c = null;
                 switch (scm.getContent().getContextName()) {
                     case "snake":
-                        if (getClient(session) != null && getClient(session).getGroup() != null) {
-                            getClient(session).getGroup().sendToAll("{ \"groupId\": "+getClient(session).getGroup().getGroupID()+", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"snake\" } }");
-                            getClient(session).getGroup().context = new SnakeContext(getClient(session).getGroup());
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"snake\" } }");
+                            c.getGroup().context = new SnakeContext(c.getGroup());
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
+                    case "chat":
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"chat\" } }");
+                            c.getGroup().context = new ChatContext(c.getGroup());
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
+                    case "debug":
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"debug\" } }");
+                            c.getGroup().context = new DebugContext(c.getGroup());
                             sent = true;
                         } else {
                             sender = new ToSessionSender(session);
@@ -219,12 +245,13 @@ public class ConnectionHandler {
             }
 
             if (sendGameList) {
-                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",\"flappy\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\"] } }");
+                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\", \"chat\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\"] } }");
             }
 
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        println("Time Elapsed: " + (System.nanoTime() - ns_start) + "ns | " + (System.currentTimeMillis() - ms_start) + "ms");
     }
 
     /**
@@ -236,9 +263,9 @@ public class ConnectionHandler {
     public void onClose(Session session) {
         println("Session " + session.getId() + " has ended");
         Client c = getClient(session);
-        if(c != null && c.getGroup() != null) {
+        if (c != null && c.getGroup() != null) {
             c.getGroup().disconnect(c);
-            
+
         }
         clients.remove(session);
     }

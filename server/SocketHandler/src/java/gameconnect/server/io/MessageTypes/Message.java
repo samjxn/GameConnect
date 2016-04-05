@@ -36,7 +36,7 @@ public abstract class Message {
 //    }
 
     /**
-     * Only for use by gson
+     * Only for use by gson. Use DefaultMessage instead.
      */
     @Deprecated
     public Message(){

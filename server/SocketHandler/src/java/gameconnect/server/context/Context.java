@@ -19,12 +19,24 @@ public abstract class Context {
 
     /**
      * return true if message is properly handled
+     *
      * @param incomingMessage
      * @param msgText
      * @param session
-     * @return 
+     * @return
      */
     public abstract boolean handleMessage(Message incomingMessage, String msgText, Session session);
 
+    /**
+     * Handles disconnecting websockets.
+     *
+     * @param s session that is disconnecting
+     */
+    public abstract void onClose(Session s);
+
+    /**
+     * Currently unused, clients must disconnect and start a new group to change
+     * contexts.
+     */
     public abstract void endContext();
 }

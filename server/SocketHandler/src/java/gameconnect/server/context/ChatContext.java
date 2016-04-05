@@ -20,23 +20,21 @@ public class ChatContext extends Context {
 
     @Override
     public boolean handleMessage(Message incomingMessage, String msgText, Session session) {
+        boolean rtn = false;
         switch (incomingMessage.getMessageType()) {
             case MessageType.CHAT_MESSAGE:
-                
+                //forward message to all.
+                group.sendToAll(msgText);
+                rtn = true;
                 break;
         
         }
-        switch (1) {
-            default:
-                for (Client c : group.clients) {
-                    try {
-                        c.sendText(session.getId() + ": ");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-        }
-        return false;
+        return rtn;
+    }
+    
+    @Override
+    public void onClose(Session s){
+        
     }
 
     @Override

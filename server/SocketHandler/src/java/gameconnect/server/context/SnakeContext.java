@@ -22,13 +22,19 @@ public class SnakeContext extends Context {
     public boolean handleMessage(Message incomingMessage, String msgText, Session session) {
         boolean rtn = false;
         switch (incomingMessage.getMessageType()) {
-            case "controller-snapshot":
+            case MessageType.CONTROLLER_SNAPSHOT:
                 //just send it off as is
                 group.sendToAll(msgText, session);
                 rtn = true;
                 break;
         }
         return rtn;
+    }
+    
+    @Override
+    public void onClose(Session s){
+        
+        
     }
 
     @Override
