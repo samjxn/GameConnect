@@ -161,20 +161,20 @@ class Snake {
 
     var dpadDir = snapshot?.dpadInput;
 
-    if (dpadDir == "1" && _dir != UP) {
+    if (dpadDir == "1" && _dir != DOWN) {
       _dir = UP;
     }
 
-    if (dpadDir == "2" && _dir != RIGHT) {
+    if (dpadDir == "2" && _dir != LEFT) {
       _dir = RIGHT;
     }
 
-    if (dpadDir == "3" && _dir != DOWN) {
+    if (dpadDir == "3" && _dir != UP) {
       print("DOWN");
       _dir = DOWN;
     }
 
-    if (dpadDir == "4" && _dir != LEFT) {
+    if (dpadDir == "4" && _dir != RIGHT) {
       _dir = LEFT;
     }
 
