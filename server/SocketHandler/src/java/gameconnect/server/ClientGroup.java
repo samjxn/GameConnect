@@ -81,7 +81,7 @@ public class ClientGroup {
 
         for (Client c : this.clients) {
             try {
-                c.session.getBasicRemote().sendText(msg);
+                c.sendText(msg);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -126,8 +126,8 @@ public class ClientGroup {
                 continue;
             }
             try {
-                c.session.getBasicRemote().sendText(msg);
-            } catch (IOException e) {
+                c.sendText(msg);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
