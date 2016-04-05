@@ -38,6 +38,11 @@ class WebSocketMessageDelegator {
       return new DisconnectStrategy(_actions);
     }
 
+//{groupId: 7, clientId: , ping: null, sourceType: controller, messageType: controller-snapshot, content: {d-pad-input: 3, a-pressed: false, b-pressed: false}}
+   if (jsonData['messageType'] == "controller-snapshot" && jsonData['content'] != null) {
+     return new ControllerInputReceivedStrategy(_actions, jsonData);
+   }
+
     print("COULD NOT CREATE MESSAGE STRATEGY");
     print("${jsonData.toString()}");
 

@@ -5,12 +5,40 @@ var gameDisplayComponent = react.registerComponent(()=> new _GameDisplayComponen
 
 class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions, GameConnectClientStores>{
 
+
   redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
+  final int CELL_SIZE = 10;
 
-  render() => react.div({'className':'game-display-area'}, [
-    react.div({'className':'game-content'}, [
-      store.gameDisplayStore.activeGameId
-    ]),
-  ]);
+
+   var canvas;
+
+  var _game;
+
+  _GameDisplayComponent(){
+    //Todo:  make dynamic
+    _game = new SnakeGame();
+  }
+
+  void componentDidMount(rootNode) {
+    store.gameDisplayStore.forwarder.registerListener(_game);
+    _game.onDidMount();
+    _game.run();
+  }
+
+  render() {
+    var snapshot = store.gameDisplayStore.lastSnapshot ?? "No input";
+
+    // (don't remake the canvas)
+    canvas ??= react.canvas({'id':"snake-canvas", "height": "400", "width": "400"},[]);
+
+    return react.div({'className':'game-display-area'}, [
+      react.div({'className':'game-content'}, [
+        react.div({}, snapshot.toString()),
+        canvas
+      ]),
+    ]);
+  }
 }
+
+
