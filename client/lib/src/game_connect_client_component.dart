@@ -4,9 +4,9 @@ import 'dart:html';
 import 'dart:math';
 import 'dart:collection';
 import 'package:client/src/game_connect_client_models.dart';
+import 'package:client/src/game_connect_games.dart';
 import 'package:react/react.dart' as react;
 import 'package:w_flux/w_flux.dart' as flux;
-import 'package:three/three.dart';
 
 
 import 'game_connect_actions.dart';
