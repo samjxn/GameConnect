@@ -4,6 +4,7 @@
       android-versionCode="3"
       ios-CFBundleVersion="3.3.3">
     <preference name="Fullscreen" value="true" />
+    <preference name="Orientation" value="portrait" />
     <name>controller</name>
     <description>
         A game controller for iOS and Android mobile phones that pairs with a desktop web application.

@@ -21,7 +21,6 @@ class GameConnectClientApi {
       var reconnectScheduled = false;
       outputMsg("Connecting to websocket");
 
-      // TODO:  Change address when we have a working backend
       _socket = new WebSocket('ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect');
 
       void scheduleReconnect() {
