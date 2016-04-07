@@ -15,7 +15,7 @@ public class DebugContext extends Context {
 
     public DebugContext(ClientGroup group) {
         super(group);
-        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 3 } }");
+        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 5 } }");
 
 //        put limits on number of types of clients
 //        don't implement for this right now.

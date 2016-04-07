@@ -17,6 +17,8 @@ public class Client {
     protected final ClientType clientType;
     protected ClientGroup clientGrouping;
     private final String clientID;
+    private String name;
+    private String uuid;
 
     /**
      *
@@ -62,6 +64,26 @@ public class Client {
 
     public String getClientID() {
         return clientID;
+    }
+
+    public void setName(String name) {
+        if(name == null || name.equalsIgnoreCase("null")){
+            String[] randNames = new String[]{"Sam", "David", "Ryan", "Mike"};
+            this.name = randNames[(int)(ConnectionHandler.randomSingleton().nextDouble() * randNames.length)];
+        }
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setUUID(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getUUID() {
+        return uuid;
     }
 
     public void disconnect() {

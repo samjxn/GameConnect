@@ -1,5 +1,6 @@
 package gameconnect.server.io.MessageTypes;
 
+import gameconnect.server.SourceType;
 import gameconnect.server.io.MessageContentTypes.MessageContent;
 
 /**

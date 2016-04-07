@@ -3,8 +3,6 @@ package gameconnect.server;
 import gameconnect.server.io.MessageTypes.*;
 import gameconnect.server.io.SendStrategies.*;
 import gameconnect.server.io.MessageContentTypes.*;
-import gameconnect.server.MessageType;
-import gameconnect.server.SourceType;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -20,6 +18,7 @@ import gameconnect.server.context.ChatContext;
 import gameconnect.server.context.DebugContext;
 import gameconnect.server.context.SnakeContext;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
+import java.util.Random;
 
 /**
  *
@@ -35,6 +34,14 @@ public class ConnectionHandler {
             gson = new GsonBuilder().create();
         }
         return gson;
+    }
+    private static Random random;
+
+    public static synchronized Random randomSingleton() {
+        if (random == null) {
+            random = new Random();
+        }
+        return random;
     }
 
     /**
@@ -120,6 +127,7 @@ public class ConnectionHandler {
         boolean sent = false;
 
         //TODO:  Replace switch block with a design pattern.
+        Client c = null;
         switch (incomingMessage.getMessageType()) {
             case MessageType.OPEN_NEW_GROUP:
                 if (incomingMessage.getGroupId() == null
@@ -167,6 +175,10 @@ public class ConnectionHandler {
 
                         group.giveClient(controllerClient);
                         controllerClient.clientGrouping = group;
+                        
+                        controllerClient.setName(content.getName());
+                        controllerClient.setUUID(content.getUUID());
+                        
                         //TODO:  Change message content
                         // respond whether or not that worked.
                         sender = new ToGroupSender(controllerClient);
@@ -180,10 +192,16 @@ public class ConnectionHandler {
 
                 }
                 break;
+                
+            case MessageType.SET_NAME:
+                SetNameMessage setNameMessage = gson.fromJson(messageJson, SetNameMessage.class);
+                c = getClient(session);
+                c.setName(setNameMessage.getContent().getName());
+                
+                break;
 
             case MessageType.SET_CONTEXT:
                 SetContextMessage scm = gson.fromJson(messageJson, SetContextMessage.class);
-                Client c = null;
                 switch (scm.getContent().getContextName()) {
                     case "snake":
                         c = getClient(session);
