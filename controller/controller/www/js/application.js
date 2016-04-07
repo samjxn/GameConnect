@@ -38,10 +38,17 @@
 
       // Create a new instance of the websocket
       webSocket = new WebSocket("ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect");
+      timeout = setTimeout(connectionFailed, 10000);     // set timeout 10 seconds;
+      document.getElementById('pairButton').disabled = true;
+      document.getElementById('pairInput').disabled = true;
+      document.getElementById('message').innerHTML = "No connection";
+      document.getElementById('message').style.color = '#DC0000';
 
       // When the websocket is opened
       webSocket.onopen = function(event){
         console.log('WebSocket connection opened at ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect');
+        clearTimeout(timeout);
+        checkPairingCode();
         if(event.data === undefined) {
           return;
         }
@@ -70,13 +77,16 @@
           case "context-selected":
             console.log("Server recieved game choice");
             break;
+          case "controller-snapshot":
+            console.log("Server recieved controller input");
+            break;
           case "game-mode":
             gameConfig(data);
             break;
           case "error":
             serverError(data);
             break;
-          case "exit":
+          case "disconnect":
             reset();
             break;
           default:
@@ -88,9 +98,22 @@
       // When the websocket is closed
       webSocket.onclose = function(event){
         console.log('WebSocket closed, resetting application in 5 seconds');
-        timeout = setTimeout(reset, 5000);     // set timeout 5 seconds;
+        connectionFailed();
       };
 
+    }
+
+    /* ---------------------------------- Reset and No Connection ---------------------------------- */
+
+    function connectionFailed() {
+      if (currentView === "home") {
+        document.getElementById('pairButton').disabled = true;
+        document.getElementById('pairInput').disabled = true;
+        document.getElementById('message').innerHTML = "Retrying in 5 seconds";
+        document.getElementById('message').style.color = '#DC0000';
+        document.getElementById('message').className = "blink";
+      }
+      timeout = setTimeout(reset, 5000);     // set timeout 5 seconds;
     }
 
     // Reset controller
@@ -155,6 +178,7 @@
     function checkPairingCode() {
       if(document.getElementById('pairInput').value.length == 0) {
         document.getElementById('pairButton').disabled = true;
+        document.getElementById('pairInput').disabled = false;
         document.getElementById('message').innerHTML = "Start Typing";
         document.getElementById('message').style.color = '#FFFFFF';
       } else if(document.getElementById('pairInput').value.length == 5) {
