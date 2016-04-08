@@ -84,7 +84,7 @@ input[type=text], select {
 
 #message {
   position: relative;
-  margin-top: 25%;
+  margin-top: 15%;
   text-align: center;
   font-size: 12px;
   color: #CCCCCC;
@@ -106,9 +106,18 @@ input[type=text], select {
   background-color: #a5d7a7;
 }
 
-#debugButton {
-  position: relative;
-  margin-top: 20%;
+#pairInput {
+  margin-bottom: 8%;
+}
+
+#displayName {
+  text-align: center;
+  font-size: 12px;
+  color: #AAAAAA;
+}
+
+#displayInput {
+  margin-bottom: 20%;
 }
 
 /* ---------- GAME SELECT VIEW ---------- */
@@ -284,6 +293,26 @@ ul li {
 #controllerButtonE {
   bottom: 50px;
   left: 120px;
+}
+
+/* ---------- CHAT VIEW ---------- */
+
+#chatMessage {
+  margin-top: 25%;
+  margin-bottom: 2%;
+  text-align: center;
+  font-size: 12px;
+  color: #FFFFFF;
+}
+
+#chatInput {
+  height: 20%;
+  width: 80%
+}
+
+#chatButton {
+  width: 60%;
+  margin-top: 15%;
 }
 
 /* ---------- CLASS STYLES ---------- */
