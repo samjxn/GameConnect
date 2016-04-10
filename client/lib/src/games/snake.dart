@@ -57,13 +57,13 @@ class SnakeGame  extends IGCGame {
   }
 
   void onSnapshotReceived(ControllerSnapshot snapshot) {
-    _snake._updateDirection(snapshot);
+    _snake._setNextDirection(snapshot);
   }
 
   void _checkForCollisions() {
     // check for collision with food
     if (_snake.head == _food) {
-      _snake.grow(growAmount: 10);
+      _snake.grow(growAmount: 10  );
       _food = _randomPoint();
     }
 
@@ -152,7 +152,7 @@ class Snake {
     );
   }
 
-  void _updateDirection(ControllerSnapshot snapshot) {
+  void _setNextDirection(ControllerSnapshot snapshot) {
 
     if (snapshot == null) {
       return;

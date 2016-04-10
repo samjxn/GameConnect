@@ -9,7 +9,8 @@ var pairingScreenComponent =
 
 class _PairingScreenComponent extends flux
     .FluxComponent<GameConnectClientActions, GameConnectClientStores> {
-  List<flux.Store> redrawOn() => [store.groupingScreenStore];
+  List<flux.Store> redrawOn() =>
+      [store.groupingScreenStore, store.gameConnectClientStore];
 
   String groupCode() => store.groupingScreenStore.groupCode;
 
@@ -30,16 +31,31 @@ class _PairingScreenComponent extends flux
     ]);
   }
 
+  _makeConnectedClientList() {
+    List clientItems = [];
+
+    List clients = store.gameConnectClientStore.clientDisplayNames.values.toList();
+    clients.forEach((String displayName) {
+      clientItems.add(react.div({'className':'connected-client-list-item'}, displayName));
+    });
+
+    return clientItems;
+  }
+
   _makeInstructionPanel() {
     var panel = react.div(
         {
-          'className':'group-screen-instruction-panel',
-          'key':'group-screen-instruction-panel'
-        }, react.button({'onClick': (_) {
-             actions.setCurrentComponent("levelSelectScreenComponent");
+          'className': 'group-screen-instruction-panel',
+          'key': 'group-screen-instruction-panel'
+        },[
+          react.button({
+            'onClick': (_) {
+              actions.setCurrentComponent("levelSelectScreenComponent");
             }
-          }, "Simulate grouping approved."));
-
+          }, "Simulate grouping approved."),
+          react.div({'className': 'connected-client-list'}, _makeConnectedClientList())
+        ]
+    );
 
     return panel;
   }
@@ -50,7 +66,7 @@ class _PairingScreenComponent extends flux
     var digits = [];
     int digitMade = 0;
 
-    code.split('').forEach((String number){
+    code.split('').forEach((String number) {
       digits.add(_makeCodeBox(number, 'number-box', digitMade));
       digits.add(_makeCodeBox('-', 'dash-box', digitMade));
       digitMade++;
@@ -65,7 +81,7 @@ class _PairingScreenComponent extends flux
     }, [
       react.div({'className': 'title-wrapper'}, "Game Connect"),
       react.div({'className': 'code-display-wrapper'}, digits),
-      react.div({'className': 'group-screen-instruction-wrapper'}, panel)
+      react.div({'className': 'connected-client-list-wrapper'}, panel)
     ]);
   }
 }
