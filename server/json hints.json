@@ -7,16 +7,18 @@
     }
 }
 
------
+----
 
 {
-    "groupId":    null,
+    "groupId": null,
     "clientId": null,
     "sourceType":"controller",
     "messageType":"join-group",
     "content":
         {
-            "groupingCode":"0"
+            "groupingCode":"0",
+            "name":"david",
+            "uuid":"12"
         }
 }
 
@@ -31,4 +33,37 @@
         {
             "contextName":"snake"
         }
+}
+
+----
+
+{
+    "groupId": null,
+    "clientId": null,
+    "sourceType":"controller",
+    "messageType":"quit-game",
+    "content":
+        {
+        }
+}
+
+----
+
+{
+    "groupId": 0,
+    "clientId": 0,
+    "sourceType":"controller",
+    "messageType":"chat-msg",
+    "content":
+        {
+            "message":"hey whats upp gurl"
+        }
+}
+
+----
+
+{
+  "groupId":"0",
+  "sourceType":"controller",
+  "messageType":"disconnect"
 }
