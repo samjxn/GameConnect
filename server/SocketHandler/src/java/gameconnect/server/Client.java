@@ -1,5 +1,6 @@
 package gameconnect.server;
 
+import gameconnect.server.database.User;
 import gameconnect.server.io.MessageTypes.DisconnectMessage;
 import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
@@ -19,6 +20,8 @@ public class Client {
     private final String clientID;
     private String name;
     private String uuid;
+    public boolean disconnected = false;
+    protected User user;
 
     /**
      *
@@ -68,8 +71,8 @@ public class Client {
 
     public void setName(String name) {
         if(name == null || name.equalsIgnoreCase("null")){
-            String[] randNames = new String[]{"Sam", "David", "Ryan", "Mike"};
-            this.name = randNames[(int)(ConnectionHandler.randomSingleton().nextDouble() * randNames.length)];
+            String[] randNames = new String[]{"Samantha", "Davida", "Ryaness", "Mikey", "Chocolate", "Vanilla", "Danger", "Phillis"};
+            this.name = randNames[(int)(ConnectionHandler.randomSingleton().nextDouble() * (randNames.length - 1))];
         }
         this.name = name;
     }
@@ -84,6 +87,10 @@ public class Client {
 
     public String getUUID() {
         return uuid;
+    }
+    
+    public User getUser(){
+        return user;
     }
 
     public void disconnect() {

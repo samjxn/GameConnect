@@ -14,7 +14,7 @@ import javax.websocket.server.ServerEndpoint;
  * "EchoChamber" is the name of the package
  * and "echo" is the address to access this class from the server
  */
-@ServerEndpoint("/panel/panel") 
+@ServerEndpoint("/panel") 
 public class Panel {
     /**
      * @OnOpen allows us to intercept the creation of a new session.

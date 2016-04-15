@@ -3,6 +3,9 @@ package gameconnect.server.context;
 import gameconnect.server.Client;
 import gameconnect.server.ClientGroup;
 import gameconnect.server.MessageType;
+import gameconnect.server.SourceType;
+import gameconnect.server.io.MessageContentTypes.ChatMessageContent;
+import gameconnect.server.io.MessageTypes.ChatMessage;
 import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
 
@@ -14,6 +17,7 @@ public class ChatContext extends Context {
 
     public ChatContext(ClientGroup group) {
         super(group);
+        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 6 } }");
 
         //no limits on number of group members for this context
     }
@@ -33,13 +37,20 @@ public class ChatContext extends Context {
     }
     
     @Override
-    public void onClose(Session s){
-        
+    public void onClose(Client c) {
+        group.sendToAll(new ChatMessage(group.getGroupID(), SourceType.BACKEND, new ChatMessageContent(c.getName()+" has left the chat.")), ChatMessage.class);
+        group.softDisconnect(c);
     }
 
     @Override
     public void endContext() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        group.context = null;
+        //do nothing for now
+    }
+    
+    @Override
+    public int getContextID(){
+        return 0;
     }
 
 }

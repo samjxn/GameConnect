@@ -16,26 +16,29 @@ import java.lang.reflect.Type;
 public class ClientGroup {
 
     /**
-     * List of all clients within this group
+     * List of all clients within this group.
      */
     public List<Client> clients;
 
     /**
-     * The group identifier
+     * The group identifier.
      */
     private String groupId;
     
-    public String getGroupID(){
-        return groupId;
-    }
-
+    /**
+     * The current context for this group, null if not in a context.
+     */
     public Context context = null;
+    
+    /**
+     * True before all clients disconnect.
+     */
+    public boolean active = true;
 
     /**
      * 
      * @param id 
      */
-    @Deprecated
     protected ClientGroup(String id) {
         this.groupId = id;
         this.clients = new ArrayList<>();
@@ -46,6 +49,7 @@ public class ClientGroup {
      * @param openingClient
      * @param groupId 
      */
+    @Deprecated
     protected ClientGroup(Client openingClient, String groupId) {
         if (openingClient == null || groupId == null) {
             throw new NullPointerException();
@@ -65,8 +69,8 @@ public class ClientGroup {
             throw new NullPointerException();
         }
 
-        if (!this.clients.contains(c)) {
-            this.clients.add(c);
+        if (!clients.contains(c)) {
+            clients.add(c);
         }
     }
 
@@ -75,7 +79,7 @@ public class ClientGroup {
      * @param msg 
      */
     public void sendToAll(String msg) {
-        if (msg == null) {
+        if (msg == null || msg.isEmpty()) {
             throw new NullPointerException();
         }
 
@@ -97,8 +101,8 @@ public class ClientGroup {
         if (m == null || t == null) {
             throw new NullPointerException();
         }
-        if(false){
-            //implement checking to ensure type t is a valid subclass of Message
+        if(false) {
+            //TODO: implement checking to ensure type t is a valid subclass of Message
         }
 
         for (Client c : this.clients) {
@@ -156,10 +160,28 @@ public class ClientGroup {
         }
     }
     
+    /**
+     * Disconnect the entire group starting with @param c
+     * @param c the client disconnecting
+     */
     public void disconnect(Client c) {
         clients.remove(c);
         sendToAll(new DisconnectMessage(groupId), DisconnectMessage.class);
         clients.clear();
+        active = false;
+    }
+    /**
+     * Disconnect without disconnecting the entire group.
+     * @param c the client disconnecting
+     */
+    public void softDisconnect(Client c) {
+        clients.remove(c);
+        if(clients.isEmpty())
+            active = false;
+    }
+    
+    public String getGroupID(){
+        return groupId;
     }
     
     public boolean inContext(){

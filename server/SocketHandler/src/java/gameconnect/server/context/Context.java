@@ -1,5 +1,6 @@
 package gameconnect.server.context;
 
+import gameconnect.server.Client;
 import gameconnect.server.ClientGroup;
 import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
@@ -30,13 +31,19 @@ public abstract class Context {
     /**
      * Handles disconnecting websockets.
      *
-     * @param s session that is disconnecting
+     * @param c client that is disconnecting
      */
-    public abstract void onClose(Session s);
+    public abstract void onClose(Client c);
 
     /**
      * Currently unused, clients must disconnect and start a new group to change
      * contexts.
      */
     public abstract void endContext();
+    
+    /**
+     * 
+     * @return 
+     */
+    public abstract int getContextID();
 }

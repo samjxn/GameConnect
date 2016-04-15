@@ -15,10 +15,15 @@ import javax.websocket.server.ServerEndpoint;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gameconnect.server.context.ChatContext;
+import gameconnect.server.context.DebugAnyContext;
 import gameconnect.server.context.DebugContext;
 import gameconnect.server.context.SnakeContext;
+import gameconnect.server.database.DatabaseSupport;
+import gameconnect.server.database.User;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -57,7 +62,7 @@ public class ConnectionHandler {
     /**
      *
      */
-    protected static HashMap<Session, Client> clients = null;
+    private static HashMap<String, Client> clients = null;
 
     /**
      *
@@ -140,7 +145,7 @@ public class ConnectionHandler {
                     Client client = clientClientGroupTuple.item0;
                     ClientGroup group = clientClientGroupTuple.item1;
 
-                    clients.put(session, client);
+                    clients.put(session.getId(), client);
                     sender = new ToClientSender(client);
                     response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND, MessageType.GROUP_CODE_RESPONSE,
                             new GroupingCodeMessageContent(groupingCode));
@@ -168,22 +173,29 @@ public class ConnectionHandler {
                     if (group != null) {
                         Client controllerClient;
                         if (getClient(session) == null) {
-                            clients.put(session, controllerClient = new Client(ClientType.MOBILE, session, group));
+                            clients.put(session.getId(), controllerClient = new Client(ClientType.MOBILE, session, group));
                         } else {
                             controllerClient = getClient(session);
                         }
 
                         group.giveClient(controllerClient);
                         controllerClient.clientGrouping = group;
-                        
+
                         controllerClient.setName(content.getName());
                         controllerClient.setUUID(content.getUUID());
-                        
+                        User u = null;
+                        if ((u = DatabaseSupport.getSingleton().getByUUID(content.getUUID())) != null) {
+                            //do something?
+                        } else {
+                            u = User.createUser(content.getName(), content.getUUID());
+                        }
+                        controllerClient.user = u;
+
                         //TODO:  Change message content
                         // respond whether or not that worked.
                         sender = new ToGroupSender(controllerClient);
                         response = new OutgoingMessage(group.getGroupID(), SourceType.BACKEND,
-                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, controllerClient.getClientID()));
+                                MessageType.JOIN_GROUP, new GroupingApprovedMessageContent(true, controllerClient.getClientID(), controllerClient.getName()));
                         sendGameList = true;
                     } else {
                         sender = new ToSessionSender(session);
@@ -192,12 +204,36 @@ public class ConnectionHandler {
 
                 }
                 break;
-                
+
             case MessageType.SET_NAME:
                 SetNameMessage setNameMessage = gson.fromJson(messageJson, SetNameMessage.class);
                 c = getClient(session);
                 c.setName(setNameMessage.getContent().getName());
-                
+
+                break;
+
+            case MessageType.DISCONNECT:
+                c = getClient(session);
+                if (c != null) {
+                    if (c.getGroup() != null && c.getGroup().context != null) {
+                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                        c.getGroup().context.onClose(c);
+                    } else if (c.getGroup() != null && c.getGroup().context == null) {
+                        c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                        c.getGroup().disconnect(c);
+                    }
+                    c.disconnected = true;
+                }
+                sent = true;
+                break;
+
+            case MessageType.QUIT_GAME:
+                c = getClient(session);
+                if (c != null && c.getGroup() != null && c.getGroup().context != null) {
+                    c.getGroup().sendToAll(messageJson);
+                    c.getGroup().context.endContext();
+                    sent = true;
+                }
                 break;
 
             case MessageType.SET_CONTEXT:
@@ -236,6 +272,40 @@ public class ConnectionHandler {
                             response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
                         }
                         break;
+                    case "debug-1":
+                    case "debug-2":
+                    case "debug-3":
+                    case "debug-4":
+                    case "debug-5":
+                    case "debug-6":
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"debug\" } }");
+                            c.getGroup().context = new DebugAnyContext(c.getGroup(), Integer.parseInt(scm.getContent().getContextName().substring(6)));
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
+                    case "settings":
+                        c = getClient(session);
+                        if (c != null) {
+                            try {
+                                //don't send to all
+//                            c.user;
+
+                                c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"context-selected\",\"content\": { \"contextName\":\"settings\" } }");
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
                     default:
                         sender = new ToSessionSender(session);
                         response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Invalid context name!"));
@@ -246,8 +316,9 @@ public class ConnectionHandler {
 
             default:
                 //just let the context try to handle it
-                if (getClient(session) != null && getClient(session).getGroup() != null && getClient(session).getGroup().context != null) {
-                    sent |= getClient(session).getGroup().context.handleMessage(incomingMessage, messageJson, session);
+                c = getClient(session);
+                if (c != null && c.getGroup() != null && c.getGroup().context != null) {
+                    sent |= c.getGroup().context.handleMessage(incomingMessage, messageJson, session);
                 }
         }
 
@@ -263,7 +334,7 @@ public class ConnectionHandler {
             }
 
             if (sendGameList) {
-                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\", \"chat\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\", \"etc\"] } }");
+                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\", \"chat\", \"settings\"] } }");
             }
 
         } catch (IOException ex) {
@@ -281,14 +352,32 @@ public class ConnectionHandler {
     public void onClose(Session session) {
         println("Session " + session.getId() + " has ended");
         Client c = getClient(session);
-        if (c != null && c.getGroup() != null) {
-            c.getGroup().disconnect(c);
-
+        if (c == null) {
+            return;
         }
-        clients.remove(session);
+        if (!c.disconnected) {
+            if (c.clientType == ClientType.PC) {
+                //nuke the group, since only one pc per group
+                c.getGroup().disconnect(c);
+            } else if (c.getGroup() != null && c.getGroup().context != null) {
+                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                c.getGroup().context.onClose(c);
+            } else if (c.getGroup() != null && c.getGroup().context == null) {
+                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                c.getGroup().disconnect(c);
+            }
+            c.disconnected = true;
+        }
+        clients.remove(session.getId());
     }
 
-    protected Client getClient(Session sesh) {
+    public static Client getClient(Session sesh) {
+        if (sesh != null) {
+            return clients.get(sesh.getId());
+        }
+        return null;
+    }
+    public static Client getClient(String sesh) {
         if (sesh != null) {
             return clients.get(sesh);
         }

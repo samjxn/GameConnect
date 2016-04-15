@@ -11,11 +11,11 @@ import javax.websocket.Session;
  *
  * @author davidboschwitz
  */
-public class DebugContext extends Context {
+public class DebugAnyContext extends Context {
 
-    public DebugContext(ClientGroup group) {
+    public DebugAnyContext(ClientGroup group, int num) {
         super(group);
-        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 5 } }");
+        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": "+num+" } }");
 
 //        put limits on number of types of clients
 //        don't implement for this right now.

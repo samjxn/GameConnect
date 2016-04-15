@@ -13,6 +13,7 @@ public abstract class Message {
     protected String groupId;
     protected String sourceType;
     protected String messageType;
+    protected String clientId;
     //protected MessageContent content;
     
     public Message(String groupId, String sourceType, String messageType) {
@@ -54,6 +55,14 @@ public abstract class Message {
     
     public String getMessageType() {
         return this.messageType;
+    }
+    
+    public void setClientId(String id){
+        clientId = id;
+    }
+    
+    public String getClientId(){
+        return clientId;
     }
     
     public abstract MessageContent getContent();

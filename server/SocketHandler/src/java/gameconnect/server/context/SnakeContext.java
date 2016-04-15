@@ -2,8 +2,14 @@ package gameconnect.server.context;
 
 import gameconnect.server.Client;
 import gameconnect.server.ClientGroup;
+import gameconnect.server.ConnectionHandler;
+import static gameconnect.server.ConnectionHandler.gson;
 import gameconnect.server.MessageType;
+import gameconnect.server.database.DatabaseSupport;
+import gameconnect.server.database.Score;
+import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 import gameconnect.server.io.MessageTypes.Message;
+import gameconnect.server.io.MessageTypes.ScoreMessage;
 import javax.websocket.Session;
 
 /**
@@ -27,19 +33,34 @@ public class SnakeContext extends Context {
                 group.sendToAll(msgText, session);
                 rtn = true;
                 break;
+            case MessageType.SCORE:
+                ScoreMessage scoreMessage = gson.fromJson(msgText, ScoreMessage.class);
+                Score score = new Score();
+                score.gameid = getContextID();
+                score.uid = ConnectionHandler.getClient(scoreMessage.getContent().clientId).getUser().uid;
+                score.score = scoreMessage.getContent().score;
+                score.scoreid = -1;
+                DatabaseSupport.getSingleton().addScore(score);
+                rtn = true;
+                break;
         }
         return rtn;
     }
     
     @Override
-    public void onClose(Session s){
-        
-        
+    public void onClose(Client c){
+        group.disconnect(c);
     }
 
     @Override
     public void endContext() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        group.context = null;
+        //do nothing for now
+    }
+    
+    @Override
+    public int getContextID(){
+        return 1;
     }
 
 }
