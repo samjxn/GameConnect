@@ -17,22 +17,14 @@ class SnakeGame  extends IGCGame {
   Point _food;
 
   _CellRenderer _cellRender;
-
   CanvasRenderingContext2D _ctx;
 
-
-
-  static const num GAME_SPEED = 100;
-  num _lastTimeStamp = 0;
-
-
   final int CELL_SIZE= 10;
-
+  static const num GAME_SPEED = 50;
+  num _lastTimeStamp = 0;
 
   int _rightEdgeX;
   int _bottomEdgeY;
-
-  SnakeGame();
 
   void onDidMount() {
     canvas = querySelector('#snake-canvas');
@@ -63,7 +55,7 @@ class SnakeGame  extends IGCGame {
   void _checkForCollisions() {
     // check for collision with food
     if (_snake.head == _food) {
-      _snake.grow(growAmount: 10  );
+      _snake.grow(growAmount: 1);
       _food = _randomPoint();
     }
 
