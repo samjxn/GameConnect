@@ -21,7 +21,6 @@ class GroupCodeReceivedStrategy extends MessageReceivedStrategy {
 }
 
 class GroupingAcceptedStrategy extends MessageReceivedStrategy {
-  //{"content":{"groupingApproved":true,"clientId":"a2597c13-ea3b-45f9-844c-00dd849139d6","name":"Sam"},"groupId":"1","sourceType":"backend","messageType":"join-group"}
 
   GroupingAcceptedStrategy(GameConnectClientActions _actions, Map jsonData) {
     String clientId = jsonData['content']['clientId'];
@@ -30,9 +29,6 @@ class GroupingAcceptedStrategy extends MessageReceivedStrategy {
     _actionsToComplete.add(_actions.registerClient);
     _payloads[_actions.registerClient] =
         new RegisterClientPayload(clientId, clientDisplayName);
-
-//    _actionsToComplete.add(_actions.setCurrentComponent);
-//    _payloads[_actions.setCurrentComponent] = Screens.LEVEL_SELECT_SCREEN;
   }
 }
 
@@ -62,7 +58,7 @@ class ControllerInputReceivedStrategy extends MessageReceivedStrategy {
   ControllerInputReceivedStrategy(
       GameConnectClientActions _actions, Map jsonData) {
     ControllerSnapshot snapshot =
-        new ControllerSnapshot.fromJsonMap(jsonData['content']);
+        new ControllerSnapshot.fromJsonMap(jsonData);
     _actionsToComplete.add(_actions.controllerSnapshotReceived);
     _payloads[_actions.controllerSnapshotReceived] = snapshot;
   }

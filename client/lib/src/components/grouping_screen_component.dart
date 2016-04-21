@@ -34,9 +34,9 @@ class _PairingScreenComponent extends flux
   _makeConnectedClientList() {
     List clientItems = [];
 
-    List clients = store.gameConnectClientStore.clientDisplayNames.values.toList();
-    clients.forEach((String displayName) {
-      clientItems.add(react.div({'className':'connected-client-list-item'}, displayName));
+    List clients = store.gameConnectClientStore.players;
+    clients.forEach((Player p) {
+      clientItems.add(react.div({'className':'connected-client-list-item'}, p.displayName));
     });
 
     return clientItems;

@@ -9,7 +9,7 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
   redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
   var canvas;
-  var _game;
+  SnakeGame _game;
 
   _GameDisplayComponent(){
     _game = new SnakeGame();
@@ -17,7 +17,7 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
 
   void componentDidMount(rootNode) {
     store.gameDisplayStore.forwarder.registerListener(_game);
-    _game.onDidMount();
+    _game.onDidMount(store.gameConnectClientStore.players);
     _game.run();
   }
 

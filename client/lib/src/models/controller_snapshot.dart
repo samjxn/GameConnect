@@ -3,18 +3,24 @@ part of game_connect_client.src.models;
 
 class ControllerSnapshot {
 
-  int _dpadInput;
+  String _dpadInput;
   bool _aPressed;
   bool _bPressed;
+  String _senderId;
 
-  int get dpadInput => _dpadInput;
+  String get dpadInput => _dpadInput;
   bool get aPressed => _aPressed;
   bool get bPressed => _bPressed;
+  String get senderId => _senderId;
+
+  //{"clientId":"f407fe13-4699-42da-9b80-6b113a2cff65","groupId":"1","sourceType":"controller","messageType":"controller-snapshot","content":{"d-pad-input":"2","a-pressed":false,"b-pressed":false}}
 
   ControllerSnapshot.fromJsonMap(Map jsonData) {
-    _dpadInput = jsonData['d-pad-input'];
-    _aPressed = jsonData['a-pressed'];
-    _bPressed = jsonData['b-pressed'];
+    var jsonDataContent = jsonData['content'];
+    _senderId = jsonData['clientId'];
+    _dpadInput = jsonDataContent['d-pad-input'];
+    _aPressed = jsonDataContent['a-pressed'];
+    _bPressed = jsonDataContent['b-pressed'];
   }
 
 
