@@ -87,6 +87,9 @@
           case "game-mode":
             gameConfig(data);
             break;
+          case "set-color":
+            updateColor(data);
+            break;
           case "chat-msg":
             console.log("Recieved a chat message");
             break;
@@ -237,7 +240,7 @@
       var nameString = document.getElementById('displayInput').value;
       console.log("Pairing code is " + codeString);
       var data = {  "groupId": null,
-                    "clientId": null,
+                    "clientId": clientId,
                     "sourceType" : "controller",
                     "messageType" : "join-group",
                     "content" :
@@ -459,6 +462,13 @@
             break;
         default:
           console.log("Game mode not recognized");
+      }
+    }
+
+    function setColor(data) {
+      if (currentView === (portrait || landscape) && data.content.clientId === clientId) {
+        document.getElementById('application').style.backgroundColor = data.content.color;
+        console.log("Updating controller color");
       }
     }
 
