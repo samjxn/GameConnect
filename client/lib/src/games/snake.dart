@@ -8,7 +8,6 @@ class SnakeGame  extends IGCGame {
   CanvasRenderingContext2D context;
   _CellRenderer renderer;
   List<Snake> _snakes;
-  List<Point> _food;
   int _playersInGame;
 
   CanvasRenderingContext2D _ctx;
@@ -27,7 +26,6 @@ class SnakeGame  extends IGCGame {
     _idPlayerMap = {};
     _playerSnakeMap = {};
     _playersInGame = 0;
-    _food = [];
   }
 
   void onDidMount(List<Player> players) {
@@ -41,7 +39,7 @@ class SnakeGame  extends IGCGame {
       _idPlayerMap[p.clientId] = p;
     });
 
-    _playersInGame = _idPlayerMap.length >= 4 ?_idPlayerMap.length : 4;
+    _playersInGame = _idPlayerMap.length < 4 ?_idPlayerMap.length : 4;
     _board = new GameBoard(canvas, CELL_SIZE);
 
     resetGame();
@@ -49,9 +47,10 @@ class SnakeGame  extends IGCGame {
 
   void resetGame() {
 
-    _food.clear();
 
-    _food.insert(0, _randomPoint());
+
+    _board.reset();
+    _board.addFood();
 
     Snake._count = 0;
     _snakes.clear();
@@ -62,12 +61,6 @@ class SnakeGame  extends IGCGame {
       _playerSnakeMap[p] = snake;
     });
 
-  }
-
-  Point _randomPoint() {
-    Random random = new Random();
-    return new Point(random.nextInt(_board._rightEdgeX),
-        random.nextInt(_board._bottomEdgeY));
   }
 
   onSnapshotReceived(ControllerSnapshot snapshot) async {
@@ -90,15 +83,8 @@ class SnakeGame  extends IGCGame {
     final num diff = delta - _lastTimeStamp;
 
     if (diff > GAME_SPEED) {
-
       _lastTimeStamp = delta;
       renderer.clear();
-
-      //draw foods
-
-      _food.forEach((Point p){
-        renderer.drawCell(p, "purple");
-      });
 
       // mark each snake as 'has not moved'
       _snakes.forEach((snake) {
@@ -107,18 +93,17 @@ class SnakeGame  extends IGCGame {
 
       //move snakes
       _snakes.where((snake) => !snake.isDead).forEach((snake) {
-        snake._move();
+        snake.move();
         if (snake.isDead) {
           _playersInGame--;
         }
       });
 
-      renderer.drawAllSnakes(_board);
+      renderer.drawBoard(_board);
     }
 
     run();
   }
-
 }
 
 class _CellRenderer {
@@ -126,8 +111,6 @@ class _CellRenderer {
   int cellSize;
   CanvasRenderingContext2D _context;
   CanvasElement _canvasElement;
-
-
 
   _CellRenderer(CanvasElement this._canvasElement, CanvasRenderingContext2D this._context, this.cellSize);
 
@@ -148,9 +131,30 @@ class _CellRenderer {
     _context.strokeRect(x, y, cellSize, cellSize);
   }
 
-  drawAllSnakes(GameBoard board){
-    board._snakeMap.forEach((Point bodyPoint, Snake snake){
-      drawCell(bodyPoint, snake._color);
+  void drawFood(Point coords, String color) {
+    _context.fillStyle = color;
+    _context.strokeStyle = "white";
+
+    final radius = (cellSize ~/ 2);
+    final int x = coords.x * cellSize + radius;
+    final int y = coords.y * cellSize + radius;
+
+    _context.beginPath();
+    _context.arc(x, y, radius, 0, 2 * PI, false);
+    _context.fillStyle = color;
+    _context.fill();
+
+  }
+
+  drawBoard(GameBoard board){
+    board._collisionMap.forEach((Point coord, dynamic object){
+      if (object is Snake) {
+        Snake snake = object;
+        drawCell(coord, snake._color);
+      } else if (object is Food) {
+        Food food = object;
+        drawFood(coord, food.color);
+      }
     });
   }
 }
@@ -159,13 +163,54 @@ class GameBoard {
 
   int _rightEdgeX;
   int _bottomEdgeY;
-  Map<Point, Snake> _snakeMap;
+  Map<Point, dynamic> _collisionMap;
+  Random rand;
 
   GameBoard(canvas, cell_size) {
     _rightEdgeX = canvas.width ~/ cell_size;
     _bottomEdgeY = canvas.height ~/ cell_size;
-    _snakeMap = {};
+    _collisionMap = {};
+    rand = new Random();
   }
+
+  addFood() {
+    var foodPoint;
+    var food = generateNewFood();
+
+    do {
+       foodPoint = new Point(rand.nextInt(_rightEdgeX),
+          rand.nextInt(_bottomEdgeY));
+    } while (_collisionMap[foodPoint] != null);
+
+    _collisionMap[foodPoint] = food;
+  }
+
+  reset() {
+    _collisionMap.clear();
+  }
+
+  Food generateNewFood() {
+    int theta = rand.nextInt(100);
+    var food;
+    if (theta <= 45) {
+      food = new Food("purple", 1);
+    } else if (theta <= 75) {
+      food = new Food("hotpink", 2);
+    } else if (theta <= 98) {
+      food = new Food("DodgerBlue ", 3);
+    } else {
+      food = new Food("black", 10);
+    }
+
+    return food;
+  }
+}
+
+class Food {
+  String color;
+  int growthAmount;
+
+  Food(this.color, this.growthAmount);
 }
 
 class Snake {
@@ -203,11 +248,12 @@ class Snake {
   }
 
   void _setInitialDirection() {
+    //todo:  undo
     _dir = null;//[RIGHT, DOWN, LEFT, UP][_count - 1];
   }
 
   void _setColor() {
-    _color = ["red", "blue", "yellow", "green"][_count - 1];
+    _color = ["red", "blue", "yellow", "green"][(_count - 1) % 4];
   }
 
   _setInitialBody() {
@@ -247,7 +293,7 @@ class Snake {
     for (int i = 0; i < START_LENGTH; i++) {
       var bodyPoint = new Point(x, y);
       _body.add(bodyPoint);
-      _board._snakeMap[bodyPoint] = this;
+      _board._collisionMap[bodyPoint] = this;
       x += xOffset;
       y += yOffset;
     }
@@ -280,57 +326,57 @@ class Snake {
     }
   }
 
-  void grow({growAmount: 1}) {
-
-
-    bool nextCellOccupied() {
-      var occupant = _board._snakeMap[head + _dir];
-
-      // if snake map is empty at snake's new head position
-      if (occupant == null) {
-        // the cell is not occupied
-        return false;
-      }
-
-      // if snake map contains the tail of a snake about to move
-      if (this.head == occupant.tail && !occupant.hasMoved){
-        // the cell is "not occupied"
-        return false;
-      }
-
-      return true;
-    }
-
-    for (int i = 0; i < growAmount; i++) {
-      if (nextCellOccupied()) {
-        this.isDead = true;
-        for (Point bodyPoint in _body) {
-          _board._snakeMap.remove(bodyPoint);
-          this._body = [];
-        }
-      } else {
-        _body.insert(0, head + _dir);
-        _board._snakeMap[head] = this;
-      }
-    }
+  void _grow() {
+    _board._collisionMap[head + _dir] = this;
+    _body.insert(0, head + _dir); // updates head
   }
 
-  void _move() {
+  void move() {
 
     _dir = _nextDir;
 
+    // todo:  remove
     if (_dir == null) {
+      _nextDir = null;
       hasMoved = true;
       return;
     }
 
-    grow();
-    if (!this.isDead) {
-      var removedBodyPoint = _body.last;
-      _board._snakeMap.remove(removedBodyPoint);
+    var nextCellOccupant = _board._collisionMap[head + _dir];
+
+    if (_deathImpending()) {
+      this.isDead = true;
+      _body.forEach((bodyPoint) => _board._collisionMap.remove(bodyPoint));
+      _body.clear();
+
+      return;
+    }
+
+    if(nextCellOccupant is Food) {
+      for (int i = 0; i < nextCellOccupant.growthAmount; i++) {
+        if (!_deathImpending()) {
+          _grow();
+        }
+      }
+      _board.addFood();
+    } else {
+      _grow();
+      _board._collisionMap.remove(_body.last);
       _body.removeLast();
       hasMoved = true;
     }
+    _dir = null;
+    _nextDir = null;
+  }
+
+  _deathImpending() {
+    var nextCellOccupant = _board._collisionMap[head + _dir];
+
+    if (nextCellOccupant is Snake) {
+      return true;
+    }
+
+    return false;
   }
 }
 
