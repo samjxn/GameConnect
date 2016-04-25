@@ -11,11 +11,12 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
   var canvas;
   SnakeGame _game;
 
-  _GameDisplayComponent(){
-    _game = new SnakeGame();
-  }
-
   void componentDidMount(rootNode) {
+    switch(store.gameDisplayStore.activeGameId) {
+      case GameIds.SNAKE:
+        _game = new SnakeGame();
+        break;
+    }
     store.gameDisplayStore.forwarder.registerListener(_game);
     _game.onDidMount(store.gameConnectClientStore.players);
     _game.run();

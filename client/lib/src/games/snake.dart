@@ -1,53 +1,58 @@
 part of game_connect_client.src.games;
 
-
-
-class SnakeGame  extends IGCGame {
-
+class SnakeGame extends IGCGame {
   CanvasElement canvas;
-  CanvasRenderingContext2D context;
   _CellRenderer renderer;
   List<Snake> _snakes;
   int _playersInGame;
+  bool _displayLabels;
 
   CanvasRenderingContext2D _ctx;
 
   Map<String, Player> _idPlayerMap;
-  Map<Player, Snake> _playerSnakeMap;
+  Map<String, Snake> _idSnakeMap;
+  Map<Snake, Player> _snakePlayerMap;
 
-  final int CELL_SIZE= 10;
+  final int CELL_SIZE = 10;
   static const num GAME_SPEED = 50;
   num _lastTimeStamp = 0;
 
   GameBoard _board;
 
-  SnakeGame(){
+  bool _displayInitialMessage;
+
+  int _gameStartTimestamp;
+
+  SnakeGame() {
     _snakes = [];
     _idPlayerMap = {};
-    _playerSnakeMap = {};
+    _idSnakeMap = {};
+    _snakePlayerMap = {};
     _playersInGame = 0;
+    _displayLabels = true;
   }
 
   void onDidMount(List<Player> players) {
+    List gamePlayers = players.length > 4 ? players.sublist(0, 4) : players;
 
     canvas = querySelector('#snake-canvas');
     _ctx = canvas.getContext('2d');
 
     renderer = new _CellRenderer(canvas, _ctx, CELL_SIZE);
 
-    players.forEach((Player p){
+    gamePlayers.forEach((Player p) {
       _idPlayerMap[p.clientId] = p;
     });
 
-    _playersInGame = _idPlayerMap.length < 4 ?_idPlayerMap.length : 4;
+    _playersInGame = _idPlayerMap.length < 4 ? _idPlayerMap.length : 4;
     _board = new GameBoard(canvas, CELL_SIZE);
 
     resetGame();
   }
 
   void resetGame() {
-
-
+    _displayInitialMessage = true;
+    _displayLabels = true;
 
     _board.reset();
     _board.addFood();
@@ -55,70 +60,130 @@ class SnakeGame  extends IGCGame {
     Snake._count = 0;
     _snakes.clear();
 
-    _idPlayerMap.forEach((_, Player p){
-      Snake snake = new Snake(_board);
+    _idPlayerMap.forEach((_, Player p) {
+      Snake snake = new Snake(_board, p.displayName);
       _snakes.add(snake);
-      _playerSnakeMap[p] = snake;
+      _idSnakeMap[p.clientId] = snake;
+      _snakePlayerMap[snake] = p;
     });
 
+    _playersInGame = _idPlayerMap.length;
   }
 
   onSnapshotReceived(ControllerSnapshot snapshot) async {
-    String clientId = snapshot.senderId;
-    Snake snake = _playerSnakeMap[_idPlayerMap[clientId]];
+    _displayInitialMessage = false;
+
+    Snake snake = _idSnakeMap[snapshot.senderId];
     snake._setNextDirection(snapshot);
   }
-
 
   void run() {
     window.animationFrame.then(update);
   }
 
-  void update(num delta) {
+  endGame() {
+    resetGame();
+  }
 
-    if(_playersInGame <= 0) {
-      //endGame();
-    }
-
-    final num diff = delta - _lastTimeStamp;
+  void update(num timestamp) {
+    final num diff = timestamp - _lastTimeStamp;
 
     if (diff > GAME_SPEED) {
-      _lastTimeStamp = delta;
-      renderer.clear();
+      _lastTimeStamp = timestamp;
 
-      // mark each snake as 'has not moved'
-      _snakes.forEach((snake) {
-        snake.hasMoved = false;
-      });
+      if (_displayInitialMessage) {
+        _displayStartMessage();
+      } else {
+        _drawGameUpdate(timestamp);
+      }
 
-      //move snakes
-      _snakes.where((snake) => !snake.isDead).forEach((snake) {
-        snake.move();
-        if (snake.isDead) {
-          _playersInGame--;
-        }
-      });
-
-      renderer.drawBoard(_board);
+      if (_playersInGame <= 0) {
+        endGame();
+      }
     }
 
     run();
   }
+
+  _displayStartMessage() {
+    renderer.clear();
+
+    _ctx.fillStyle = "black";
+    _ctx.font = "100px Monospace";
+    _ctx.textAlign = "center";
+    _ctx.fillText("Snake.", canvas.width ~/ 2, canvas.height ~/ 2);
+    _ctx.font = "25px Monospace";
+    _ctx.fillText("(hiss)", canvas.width ~/ 2 + 75, canvas.height ~/ 2 + 25);
+
+    _ctx.fillText("Press A to start, Press B to quit.", canvas.width ~/ 2,
+        canvas.height ~/ 2 + 100);
+  }
+
+  _drawGameUpdate(timestamp) {
+    _gameStartTimestamp ??= timestamp;
+    renderer.clear();
+
+    // mark each snake as 'has not moved'
+    _snakes.forEach((snake) {
+      snake.hasMoved = false;
+    });
+
+    //move snakes
+    _snakes.where((snake) => !snake.isDead).forEach((snake) {
+      snake.move();
+      if (snake.isDead) {
+        _playersInGame--;
+      }
+    });
+
+    drawLabels();
+
+    renderer.drawBoard(_board);
+  }
+
+  drawLabels() {
+    if (_displayLabels) {
+
+      var i = 0;
+
+      var cellOffset = 3 ;//* CELL_SIZE;
+
+      var labelOffsets = [
+        new Point(0, cellOffset),
+        new Point(-cellOffset, 0),
+        new Point(0, -cellOffset),
+        new Point(cellOffset, 0)
+      ];
+      var justification  = [
+        "right",
+        "right",
+        "left",
+        "left"
+      ];
+
+
+//       todo:  get drawing labels working
+      _snakes.forEach((Snake s) {
+        renderer.drawLabel(s.name, s.head +labelOffsets[i], s._color, justification[i]);
+        i++;
+      });
+    }
+  }
 }
 
 class _CellRenderer {
-
   int cellSize;
   CanvasRenderingContext2D _context;
   CanvasElement _canvasElement;
 
-  _CellRenderer(CanvasElement this._canvasElement, CanvasRenderingContext2D this._context, this.cellSize);
+  _CellRenderer(CanvasElement this._canvasElement,
+      CanvasRenderingContext2D this._context, this.cellSize);
 
   void clear() {
-    _context..fillStyle = "white"
+    _context
+      ..fillStyle = "white"
       ..fillRect(0, 0, _canvasElement.width - 1, _canvasElement.height - 1);
   }
-
 
   void drawCell(Point coords, String color) {
     _context.fillStyle = color;
@@ -143,11 +208,10 @@ class _CellRenderer {
     _context.arc(x, y, radius, 0, 2 * PI, false);
     _context.fillStyle = color;
     _context.fill();
-
   }
 
-  drawBoard(GameBoard board){
-    board._collisionMap.forEach((Point coord, dynamic object){
+  drawBoard(GameBoard board) {
+    board._collisionMap.forEach((Point coord, dynamic object) {
       if (object is Snake) {
         Snake snake = object;
         drawCell(coord, snake._color);
@@ -157,10 +221,16 @@ class _CellRenderer {
       }
     });
   }
+
+  drawLabel(String label, Point point, String color, String alignment) {
+    _context.fillStyle = color;
+    _context.textAlign = alignment;
+
+    _context.fillText(label, point.x * cellSize, point.y * cellSize);
+  }
 }
 
 class GameBoard {
-
   int _rightEdgeX;
   int _bottomEdgeY;
   Map<Point, dynamic> _collisionMap;
@@ -178,8 +248,8 @@ class GameBoard {
     var food = generateNewFood();
 
     do {
-       foodPoint = new Point(rand.nextInt(_rightEdgeX),
-          rand.nextInt(_bottomEdgeY));
+      foodPoint =
+          new Point(rand.nextInt(_rightEdgeX), rand.nextInt(_bottomEdgeY));
     } while (_collisionMap[foodPoint] != null);
 
     _collisionMap[foodPoint] = food;
@@ -214,7 +284,6 @@ class Food {
 }
 
 class Snake {
-
   static int _count;
 
   static const int START_LENGTH = 20;
@@ -234,56 +303,62 @@ class Snake {
   Point get head => _body.first;
   Point get tail => _body.last;
   GameBoard _board;
+  String name;
+  int _id;
 
-
-  Snake(GameBoard this._board) {
+  Snake(GameBoard this._board, this.name) {
+    _id = _count;
     _count++;
     _body = [];
     hasMoved = false;
     isDead = false;
 
     _setInitialDirection();
-    _setInitialBody();
+    _body = _getInitialBody();
+    _initBodyCollisions();
     _setColor();
+  }
+
+  void _initBodyCollisions() {
+    _body.forEach((Point bodyPoint){
+      _board._collisionMap[bodyPoint] = this;
+    });
   }
 
   void _setInitialDirection() {
     //todo:  undo
-    _dir = null;//[RIGHT, DOWN, LEFT, UP][_count - 1];
+    _dir = null; //[RIGHT, DOWN, LEFT, UP][_count - 1];
   }
 
   void _setColor() {
-    _color = ["red", "blue", "yellow", "green"][(_count - 1) % 4];
+    _color = ["red", "blue", "gold", "green"][(_id) % 4];
   }
 
-  _setInitialBody() {
-
-    if (_body == null || ! _body.isEmpty) {
-      _body = [];
-    }
+  _getInitialBody() {
+    var newBody = [];
 
     var x = 0;
     var y = 0;
     var xOffset = 0;
     var yOffset = 0;
 
-    switch (_count) {
-      case 1:
+    switch (_id) {
+      case 0:
         x = 1;
         y = 1;
         xOffset = 1;
         break;
-      case 2:
+      case 1:
         x = _board._rightEdgeX - 1;
         y = 1;
         yOffset = 1;
         break;
-      case 3:
+      case 2:
         x = _board._rightEdgeX - 1;
         y = _board._bottomEdgeY - 1;
         xOffset = -1;
         break;
-      case 4:
+      case 3:
         x = 1;
         y = _board._bottomEdgeY - 1;
         yOffset = -1;
@@ -292,17 +367,16 @@ class Snake {
 
     for (int i = 0; i < START_LENGTH; i++) {
       var bodyPoint = new Point(x, y);
-      _body.add(bodyPoint);
-      _board._collisionMap[bodyPoint] = this;
+      newBody.add(bodyPoint);
+      //todo:  MOVE
       x += xOffset;
       y += yOffset;
     }
 
-    _body = _body.reversed.toList(growable: true);
+    return newBody.reversed.toList(growable: true);
   }
 
   void _setNextDirection(ControllerSnapshot snapshot) {
-
     if (snapshot == null) {
       return;
     }
@@ -332,7 +406,6 @@ class Snake {
   }
 
   void move() {
-
     _dir = _nextDir;
 
     // todo:  remove
@@ -352,7 +425,7 @@ class Snake {
       return;
     }
 
-    if(nextCellOccupant is Food) {
+    if (nextCellOccupant is Food) {
       for (int i = 0; i < nextCellOccupant.growthAmount; i++) {
         if (!_deathImpending()) {
           _grow();
@@ -379,6 +452,3 @@ class Snake {
     return false;
   }
 }
-
-
-
