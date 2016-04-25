@@ -14,3 +14,6 @@ part 'models/game_ids.dart';
 part 'models/controller_snapshot.dart';
 part 'models/control_forwarder.dart';
 part 'models/game_interface.dart';
+part 'models/message_types.dart';
+part 'models/payloads.dart';
+part 'models/player.dart';

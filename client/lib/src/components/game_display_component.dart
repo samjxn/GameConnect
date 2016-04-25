@@ -8,33 +8,26 @@ class _GameDisplayComponent extends flux.FluxComponent<GameConnectClientActions,
 
   redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
-  final int CELL_SIZE = 10;
-
-
-   var canvas;
-
-  var _game;
-
-  _GameDisplayComponent(){
-    //Todo:  make dynamic
-    _game = new SnakeGame();
-  }
+  var canvas;
+  SnakeGame _game;
 
   void componentDidMount(rootNode) {
+    switch(store.gameDisplayStore.activeGameId) {
+      case GameIds.SNAKE:
+        _game = new SnakeGame();
+        break;
+    }
     store.gameDisplayStore.forwarder.registerListener(_game);
-    _game.onDidMount();
+    _game.onDidMount(store.gameConnectClientStore.players);
     _game.run();
   }
 
   render() {
-    var snapshot = store.gameDisplayStore.lastSnapshot ?? "No input";
-
-    // (don't remake the canvas)
-    canvas ??= react.canvas({'id':"snake-canvas", "height": "400", "width": "400"},[]);
+    // don't remake the canvas
+    canvas ??= react.canvas({'id':"snake-canvas", "height": "${window.innerHeight}", "width": "${window.outerHeight}"},[]);
 
     return react.div({'className':'game-display-area'}, [
       react.div({'className':'game-content'}, [
-        react.div({}, snapshot.toString()),
         canvas
       ]),
     ]);

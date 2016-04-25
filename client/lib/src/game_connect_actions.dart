@@ -14,5 +14,6 @@ class GameConnectClientActions {
   Action<String> setCurrentComponent = new Action<String>();
   Action<ControllerSnapshot> controllerSnapshotReceived = new Action<ControllerSnapshot>();
   Action<String> setActiveGame = new Action<String>();
+  Action<RegisterClientPayload> registerClient = new Action<RegisterClientPayload>();
 
 }
