@@ -21,7 +21,6 @@ class GroupCodeReceivedStrategy extends MessageReceivedStrategy {
 }
 
 class GroupingAcceptedStrategy extends MessageReceivedStrategy {
-
   GroupingAcceptedStrategy(GameConnectClientActions _actions, Map jsonData) {
     String clientId = jsonData['content']['clientId'];
     String clientDisplayName = jsonData['content']['name'];
@@ -57,9 +56,16 @@ class DoNothingStrategy extends MessageReceivedStrategy {
 class ControllerInputReceivedStrategy extends MessageReceivedStrategy {
   ControllerInputReceivedStrategy(
       GameConnectClientActions _actions, Map jsonData) {
-    ControllerSnapshot snapshot =
-        new ControllerSnapshot.fromJsonMap(jsonData);
+    ControllerSnapshot snapshot = new ControllerSnapshot.fromJsonMap(jsonData);
     _actionsToComplete.add(_actions.controllerSnapshotReceived);
     _payloads[_actions.controllerSnapshotReceived] = snapshot;
+  }
+}
+
+
+class SoftDisconnectStrategy extends MessageReceivedStrategy {
+  SoftDisconnectStrategy(GameConnectClientActions _actions, Map jsonData) {
+    _actionsToComplete.add(_actions.disconnectPlayer);
+    _payloads[_actions.disconnectPlayer] = jsonData['content']['clientId'];
   }
 }

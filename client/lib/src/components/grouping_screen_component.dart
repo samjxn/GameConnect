@@ -36,26 +36,21 @@ class _PairingScreenComponent extends flux
 
     List clients = store.gameConnectClientStore.players;
     clients.forEach((Player p) {
-      clientItems.add(react.div({'className':'connected-client-list-item'}, p.displayName));
+      clientItems.add(react
+          .div({'className': 'connected-client-list-item'}, p.displayName));
     });
 
     return clientItems;
   }
 
   _makeInstructionPanel() {
-    var panel = react.div(
-        {
-          'className': 'group-screen-instruction-panel',
-          'key': 'group-screen-instruction-panel'
-        },[
-          react.button({
-            'onClick': (_) {
-              actions.setCurrentComponent("levelSelectScreenComponent");
-            }
-          }, "Simulate grouping approved."),
-          react.div({'className': 'connected-client-list'}, _makeConnectedClientList())
-        ]
-    );
+    var panel = react.div({
+      'className': 'group-screen-instruction-panel',
+      'key': 'group-screen-instruction-panel'
+    }, [
+      react.div(
+          {'className': 'connected-client-list'}, _makeConnectedClientList())
+    ]);
 
     return panel;
   }

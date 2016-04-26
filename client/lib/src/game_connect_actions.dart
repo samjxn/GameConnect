@@ -15,5 +15,6 @@ class GameConnectClientActions {
   Action<ControllerSnapshot> controllerSnapshotReceived = new Action<ControllerSnapshot>();
   Action<String> setActiveGame = new Action<String>();
   Action<RegisterClientPayload> registerClient = new Action<RegisterClientPayload>();
+  Action<String> disconnectPlayer = new Action<String>();
 
 }

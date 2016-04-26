@@ -3,7 +3,7 @@ part of game_connect_client.src.stores;
 class GameDisplayStore extends flux.Store {
 
   GameConnectClientActions _actions;
-  GameConnectClientApi _api;
+  GameConnectClientApi api;
 
   String _activeGameId;
 
@@ -15,7 +15,7 @@ class GameDisplayStore extends flux.Store {
   ControlForwarder _forwarder;
   ControlForwarder get forwarder => _forwarder;
 
-  GameDisplayStore(GameConnectClientActions this._actions, GameConnectClientApi this._api) {
+  GameDisplayStore(GameConnectClientActions this._actions, GameConnectClientApi this.api) {
     _forwarder = new ControlForwarder();
     _activeGameId = null;
 

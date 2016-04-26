@@ -17,6 +17,7 @@ class GameConnectClientStore extends flux.Store {
     _actions.setCurrentComponent.listen(_onSetComponent);
     _actions.onQuit.listen(_onUserQuit);
     _actions.registerClient.listen(_onRegisterClient);
+    _actions.disconnectPlayer.listen(_deRegisterClient);
   }
 
   _onRegisterClient(RegisterClientPayload p) {
@@ -24,12 +25,18 @@ class GameConnectClientStore extends flux.Store {
     trigger();
   }
 
-  _onSetComponent(String component) {
-    _currentComponent = component;
+  _onSetComponent(String componentName) {
+    _currentComponent = componentName;
     trigger();
   }
 
   _onUserQuit(_){
-    _onSetComponent('groupingScreenComponent');
+    _groupMembers = {};
+    _onSetComponent(Screens.GROUPING_SCREEN);
+  }
+
+  _deRegisterClient(String clientId) {
+    _groupMembers.remove(clientId);
+    trigger();
   }
 }

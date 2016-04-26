@@ -19,7 +19,7 @@ class GameConnectClientApi {
 
     void initWebSocket([int retrySeconds = 2]) {
       var reconnectScheduled = false;
-      outputMsg("Connecting to websocket");
+      print("Connecting to websocket");
 
       _socket = new WebSocket('ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect');
 
@@ -35,16 +35,16 @@ class GameConnectClientApi {
       });
 
       _socket.onClose.listen((e) {
-        outputMsg('Websocket closed');
+        print('Websocket closed');
       });
 
       _socket.onError.listen((e) {
-        outputMsg("Error connecting to ws");
+        print("Error connecting to ws");
         scheduleReconnect();
       });
 
       _socket.onMessage.listen((MessageEvent e) {
-        print("MESSAGE:  "+e.data);
+//        print("MESSAGE:  "+e.data);
         MessageReceivedStrategy m = _delegator.delegateReceivedMessage(e);
         m.executeStrategy();
       });
@@ -53,8 +53,20 @@ class GameConnectClientApi {
     initWebSocket();
   }
 
-  void outputMsg(String msg){
-    print(msg);
+  bool sendHighScore(String clientId, int score) {
+
+    Map<String, dynamic> _messageJson = {};
+
+    _messageJson['sourceType'] = "pc-client";
+    _messageJson['messageType'] = "score";
+    _messageJson['content'] = {'clientId': clientId, 'score': "$score"};
+
+    if(_socket.readyState == 1) {
+      _socket.send(JSON.encode(_messageJson));
+      return true;
+    }
+
+    return false;
   }
 
   bool requestGroupingCode() {
@@ -66,13 +78,8 @@ class GameConnectClientApi {
     _messageJson['messageType'] = "open-new-group";
     _messageJson['content'] = null;
 
-//    _socketJson['client_id'] = 'MY_ID';
-//    _socketJson['requesting_room'] = true;
-
-    String _jsonStr = JSON.encode(_messageJson);
-
     if(_socket.readyState == 1) {
-      _socket.send(_jsonStr);
+      _socket.send(JSON.encode(_messageJson));
       return true;
     }
 

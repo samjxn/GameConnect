@@ -28,7 +28,7 @@ class _GameConnectClientComponent extends react.Component {
   GameConnectClientStores _stores =  new GameConnectClientStores(_actions, _api);
 
   _GameConnectClientComponent(){
-    _actions.setCurrentComponent('groupingScreenComponent');
+    _actions.setCurrentComponent(Screens.GROUPING_SCREEN);
   }
 
   render() => react.div({'className': ''}, mainContentComponent({'actions': _actions, 'store': _stores}));
