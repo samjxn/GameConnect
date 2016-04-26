@@ -1,9 +1,5 @@
 part of game_connect_client.src.game_connect_client_component;
 
-/**
- *
- */
-
 var pairingScreenComponent =
     react.registerComponent(() => new _PairingScreenComponent());
 
@@ -24,7 +20,7 @@ class _PairingScreenComponent extends flux
       'className': '$className',
       'key': '$className-$digit'
     }, [
-      react.div({
+      react.span({
         'className': '$className-char-wrapper',
         'key': '$className-char-wrapper-$digit'
       }, character),
@@ -36,26 +32,25 @@ class _PairingScreenComponent extends flux
 
     List clients = store.gameConnectClientStore.players;
     clients.forEach((Player p) {
-      clientItems.add(react.div({'className':'connected-client-list-item'}, p.displayName));
+      clientItems.add(react
+          .div({'className': 'connected-client-list-item'}, p.displayName));
     });
 
     return clientItems;
   }
 
   _makeInstructionPanel() {
-    var panel = react.div(
-        {
-          'className': 'group-screen-instruction-panel',
-          'key': 'group-screen-instruction-panel'
-        },[
-          react.button({
-            'onClick': (_) {
-              actions.setCurrentComponent("levelSelectScreenComponent");
-            }
-          }, "Simulate grouping approved."),
-          react.div({'className': 'connected-client-list'}, _makeConnectedClientList())
-        ]
-    );
+    var panel = react.div({
+      'className': 'group-screen-instruction-panel',
+      'key': 'group-screen-instruction-panel'
+    }, [
+      react.div({'className': 'instruction-wrapper'}, "(Enter the above code in your GameConnect app)"),
+      react.div(
+          {'className': 'connected-client-list'}, [
+        "Connected Players:",
+        _makeConnectedClientList()
+      ])
+    ]);
 
     return panel;
   }
@@ -79,7 +74,7 @@ class _PairingScreenComponent extends flux
       'className': 'group-screen-content-container',
       'key': 'group-screen-content-container'
     }, [
-      react.div({'className': 'title-wrapper'}, "Game Connect"),
+      react.div({'className': 'title-wrapper'}, " GAME CONNECT"),
       react.div({'className': 'code-display-wrapper'}, digits),
       react.div({'className': 'connected-client-list-wrapper'}, panel)
     ]);

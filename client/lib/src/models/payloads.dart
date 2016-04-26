@@ -10,3 +10,4 @@ class RegisterClientPayload {
 
   RegisterClientPayload(this._clientId, this._displayName);
 }
+

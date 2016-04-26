@@ -8,5 +8,6 @@ class MessageTypes {
   static const String CONTEXT_SELECTED = "context-selected";
   static const String CLIENT_DISCONNECT = "disconnect";
   static const String CONTROLLER_SNAPSHOT = "controller-snapshot";
+  static const String SOFT_DISCONNECT = "soft-disconnect";
 
 }

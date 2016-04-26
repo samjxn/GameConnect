@@ -24,6 +24,7 @@ class WebSocketMessageDelegator {
 
     String messageType = jsonData['messageType'];
 
+
     switch(messageType){
       case MessageTypes.GROUP_CODE_RESPONSE:
         strategy = new GroupCodeReceivedStrategy(_actions, jsonData);
@@ -42,6 +43,9 @@ class WebSocketMessageDelegator {
         break;
       case MessageTypes.CONTROLLER_SNAPSHOT:
         strategy = new ControllerInputReceivedStrategy(_actions, jsonData);
+        break;
+      case MessageTypes.SOFT_DISCONNECT:
+        strategy = new SoftDisconnectStrategy(_actions, jsonData);
         break;
       default:
         print("COULD NOT CREATE MESSAGE STRATEGY:  ${jsonData.toString()}");

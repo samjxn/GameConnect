@@ -6,7 +6,6 @@ class GroupingScreenStore extends flux.Store {
   GameConnectClientApi _api;
   GroupCode _groupCode = null;
   static bool _groupCodeRequestMade = false;
-  static bool _groupScreenActive = false;
 
   String get groupCode {
     return _groupCode?.code ?? '00000';
@@ -18,7 +17,6 @@ class GroupingScreenStore extends flux.Store {
     // listen for actions:  instantiate listeners
     _actions.onSocketConnect.listen(_onWebsocketConnect);
     _actions.groupingCodeReceived.listen(_onGroupCodeReceived);
-    _actions.requestGroupCode.listen(_onRequestGroupCode);
     _actions.setCurrentComponent.listen(_onSetComponent);
     _actions.onQuit.listen(_onQuit);
   }
@@ -30,12 +28,7 @@ class GroupingScreenStore extends flux.Store {
   }
 
   void _onQuit(_) {
-    _onSetComponent("groupingScreenComponent");
-  }
-
-  // TODO:  Delete?
-  void _onRequestGroupCode(_){
-
+    window.location.reload();
   }
 
   void _onGroupCodeReceived(String code) {
@@ -43,14 +36,14 @@ class GroupingScreenStore extends flux.Store {
     trigger();
   }
 
-  void _onSetComponent(String component) {
-  if (component == 'groupingScreenComponent' && !_groupScreenActive) {
-    _groupScreenActive = true;
-    if (!_groupCodeRequestMade) {
+  void _onSetComponent(String componentName) {
+  if (componentName != Screens.GROUPING_SCREEN) {
+    return;
+  }
+  if (!_groupCodeRequestMade) {
+      _groupCodeRequestMade = true;
       _groupCodeRequestMade = _api.requestGroupingCode();
-    }
-  } else if (_groupScreenActive && component != 'groupingScreenComponent') {
-      _groupScreenActive = false;
+    }else {
       _groupCodeRequestMade = false;
       _groupCode = null;
     }

@@ -13,22 +13,41 @@ body {
   height: 100%;
   background-color: black;
 
+  .title-wrapper {
+    font-size: 8em;
+    padding-top: 75px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    white-space: nowrap;
+  }
+
   .code-display-wrapper {
     display: flex;
     flex-direction: row;
-    padding-top: 200px;
+    padding-top: 100px;
     width: 90%;
     margin: 0 auto;
 
     .number-box {
       border-radius: 15px;
       background-color: dimgrey;
-      //margin: 0 5% 0 5%;
+
       order: 1;
       flex-grow: 1;
       text-align: center;
       vertical-align: middle;
       font-size: 200px;
+
+      .number-box-char-wrapper{
+        display: inline-block;
+        vertical-align: middle;
+        line-height: normal;
+      }
+
+      .dash-box-char-wrapper {
+        @extend .number-box-char-wrapper;
+      }
     }
 
     .dash-box {
@@ -38,4 +57,27 @@ body {
       margin: 0;
     }
   }
+
+  .instruction-wrapper {
+    margin-top: 50px;
+    text-align: center;
+  }
+
+  .connected-client-list{
+    text-align: center;
+    margin-top: 250px;
+    font-size: 30px;
+    .connected-client-list-item {
+      margin-top: 10px;
+    }
+  }
+}
+
+#game-canvas {
+  position: absolute;
+  margin: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }

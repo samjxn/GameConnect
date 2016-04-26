@@ -8,7 +8,7 @@ class ControlForwarder {
     listeners = [];
   }
 
-  registerListener(IGCGame listener) {
+  registerListener(listener) {
     listeners.add(listener);
   }
 
