@@ -14,28 +14,29 @@ $page['title'] = "Snake Highscores";
                     FROM db309grp16.highscores AS hi
                     INNER JOIN `db309grp16`.`users` AS u ON hi.uid = u.uid
                     WHERE hi.gameid = 1
-                    ORDER BY hi.score DESC";
+                    ORDER BY hi.score DESC 
+                    LIMIT 100";
         $result = mysql_query($query) or die('Invalid query: ' . mysql_error());
         $i = 1;
         ?>
         <div class="row">
             <?php if($row[$i] = mysql_fetch_assoc($result)) { ?>
             <div class="col-lg-4 col-sm-6 text-center">
-                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="">
+                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="" style="width:200px;height:200px;">
                 <h3><b>1.&nbsp;</b><?php echo $row[$i]['name']; ?>
                     <small><?php echo $row[$i]['score']; ?> Points</small>
                 </h3>
             </div>
             <?php $i++; } if($row[$i] = mysql_fetch_assoc($result)) { ?>
             <div class="col-lg-4 col-sm-6 text-center">
-                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="">
+                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="" style="width:200px;height:200px;">
                 <h3><b>2.&nbsp;</b><?php echo $row[$i]['name']; ?>
                     <small><?php echo $row[$i]['score']; ?> Points</small>
                 </h3>
             </div>
             <?php $i++; } if($row[$i] = mysql_fetch_assoc($result)) { ?>
             <div class="col-lg-4 col-sm-6 text-center">
-                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="">
+                <img class="img-circle img-responsive img-center" src="<?php echo $row[$i]['fbpic']; ?>" alt="" style="width:200px;height:200px;">
                 <h3><b>3.&nbsp;</b><?php echo $row[$i]['name']; ?>
                     <small><?php echo $row[$i]['score']; ?> Points</small>
                 </h3>
@@ -43,7 +44,7 @@ $page['title'] = "Snake Highscores";
             <?php $i++; } ?>
         </div>
         <div class="row">
-            <table class="table table-striped table-hover table-condensed">
+            <table class="table table-striped table-hover highscores-table" style="margin-left:10px">
                 <thead>
                     <tr>
                         <th>Rank</th>

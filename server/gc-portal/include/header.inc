@@ -5,19 +5,20 @@ date_default_timezone_set('US/Central');
 
 session_start();
 $link[] = "play.php";
+$link_add[] = "#main-content";
 $desc[] = "Play";
 
 $link[] = "about.php";
+$link_add[] = "";
 $desc[] = "About";
 
 $link[] = "download.php";
+$link_add[] = "";
 $desc[] = "Download";
 
 $link[] = "highscores.php";
+$link_add[] = "";
 $desc[] = "Highscores";
-
-$link[] = "service.php";
-$desc[] = "Service Panel";
 ?>
 <div id="sidebar">
     <nav class="navbar navbar-default">
@@ -35,23 +36,33 @@ $desc[] = "Service Panel";
                 <ul class="nav navbar-nav">
                     <?php
                     for ($i = 0; isset($link[$i]); $i++) {
-                        if (basename($_SERVER['PHP_SELF']) == $link[$i]) {
+                        if (basename($_SERVER['PHP_SELF']) == basename($link[$i])) {
                             ?>
                             <li class="active"><a href="#"><?php echo $desc[$i]; ?></a></li>
                             <?php
                         } else {
                             ?>
-                            <li><a href="<?php echo $link[$i]; ?>"><?php echo $desc[$i]; ?></a></li>
+                            <li><a href="<?php echo $link[$i] . $link_add[$i]; ?>"><?php echo $desc[$i]; ?></a></li>
                             <?php
                         }
                     }
+                    
+                    if (basename($_SERVER['PHP_SELF']) == "service.php") {
+                            ?>
+                            <li class="active"><a href="#">Service Panel</a></li>
+                            <?php
+                        } else if($_SESSION['role'] == 'admin') {
+                            ?>
+                            <li><a href="/service.php">Service Panel</a></li>
+                            <?php
+                        }
                     ?>
 
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <?php if(isset($_SESSION['fbid'])){ ?>
                     <ul class="nav navbar-nav navbar-right">
-                        <li class="<?php echo (basename($_SERVER['PHP_SELF']) == "profile.php" ? "active" : ""); ?>"><a href="profile.php"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;My Profile</a></li>
+                        <li class="<?php echo (basename($_SERVER['PHP_SELF']) == "profile.php" ? "active" : ""); ?>"><a href="profile.php"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;Signed in as <?php echo $_SESSION['full_name']; ?></a></li>
                     </ul>
                     <?php }else{ ?>
                     <li class="dropdown">
@@ -86,5 +97,5 @@ if (isset($page['title'])) {
         </div>
     </div>
 <?php } ?>
-<div id="all-content" class="container mycontent">
+<div id="all-content" class="container">
     <div id="main-content">

@@ -1,5 +1,5 @@
 <?php
-$page['title'] = "Cool-looking index page";
+$page['title'] = "Game Connect <small>Revolutionize your controller</small>";
 ?>
 <html>
     <head>
@@ -8,7 +8,7 @@ $page['title'] = "Cool-looking index page";
     </head>
     <body>
         <?php require "include/header.inc"; ?>
-         Nothing here yet...
+        <h3>Game Connect is a new platform that makes your mobile device a controller.</h3>
         <?php require "include/footer.inc"; ?>
     </body>
 </html>

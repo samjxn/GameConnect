@@ -142,7 +142,18 @@ table.award td {
     
 
 }
+@media (min-width: 500px) and (max-width: 999px) {
+    .highscores-table {
+        margin-left: 5px;
+    }
+}
 
+@media (min-width: 1000px) {
+    .highscores-table {
+        padding-right: 30px;
+        padding-left: 30px;
+    }
+}
 
 @media (min-width: 500px) and (max-width: 999px) {
    .login-box {

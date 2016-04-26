@@ -6,28 +6,29 @@ if(!isset($_SESSION['fbid'])){
     
     die("unauthenticated");
 }
-if($_POST['ugh'] == 1){
+if($_POST['update'] == 1){
     require 'include/mysql.inc';
     $query = "UPDATE `db309grp16`.`users` SET `fbid` = '".$_SESSION['fbid']."', `fbpic` = '".$_SESSION['fbpic']."', `name` = '".$_SESSION['full_name']."' WHERE `device_uuid` LIKE '%\"" . $_POST['uuid'] . "\"%';";
     $result = mysql_query($query) or die('Invalid query: ' . mysql_error() . '<br>' . $query);
     mysql_close($mysql_link);
-}
-?>
+    $onload = "swal('Updated!', 'Your profile has been successfully updated!', 'success');";
+} ?>
 <html>
     <head>
         <title>GC-Profile</title>
         <?php require "include/head.inc"; ?>
     </head>
-    <body>
+    <body onload="<?php echo $onload; ?>">
         <?php require "include/header.inc"; ?>
-        <img class="img-circle img-responsive" src="<?php echo $_SESSION['fbpic']; ?>" alt="">
-        Name: <?php echo $_SESSION['full_name']; ?><br>
-        FBID: <?php echo $_SESSION['fbid']; ?><br>
-        FBPIC: <?php echo $_SESSION['fbpic']; ?><br>
+        <img class="img-circle img-responsive" src="<?php echo $_SESSION['fbpic']; ?>" alt="" style="width:200px;height:200px"><br>
+        <b>Name</b>: <?php echo $_SESSION['full_name']; ?><br>
+        <b>FBID</b>: <?php echo $_SESSION['fbid']; ?><br>
+        <b>FBPIC</b>: <?php echo $_SESSION['fbpic']; ?><br>
+        <b>Role</b>:  <?php echo $_SESSION['role']; ?><br><br>
         <form action="profile.php" method="POST">
-            <input type="hidden" id="ugh" name="ugh" value="1" />
-            Device ID to add:<br>
-            <input type="text" id="uuid" name="uuid" placeholder="Device uuid" /><br>
+            <input type="hidden" id="update" name="update" value="1" />
+            <b>Pairing Code to add</b>:<br>
+            <input type="text" id="uuid" name="uuid" placeholder="Pairing code" /><br>
             <input type="submit" value="Submit" />
         </form>
         <br><br>

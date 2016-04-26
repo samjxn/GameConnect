@@ -118,7 +118,21 @@ $_SESSION['fbid'] = $user['id'];
 $_SESSION['first_name'] = $user['first_name'];
 $_SESSION['last_name'] = $user['last_name'];
 $_SESSION['gender'] = $user['gender'];
-$_SESSION['fbpic'] = "https://graph.facebook.com/".$_SESSION['fbid'] ."/picture?width=200&height=200";
+$_SESSION['fbpic'] = "https://graph.facebook.com/".$_SESSION['fbid'] ."/picture?width=400&height=400";
+
+
+        //require_once 'lib/facebook-sdk/src/Facebook/autoload.php';
+
+        //session_start();
+$adminIDs = array("10209377480496991","10154174372958754","962686530474583", "10207598165964942");
+
+foreach($adminIDs as $uid){
+    if($_SESSION['fbid'] == $uid){
+        $_SESSION['role'] = 'admin';
+        break;
+    }
+    $_SESSION['role'] = 'user';
+}
 
 //require 'include/mysql.inc';
 //
