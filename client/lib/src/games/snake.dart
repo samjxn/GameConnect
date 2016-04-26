@@ -1,7 +1,5 @@
 part of game_connect_client.src.games;
 
-// This would be better if it were named "Spaghetti".
-
 class SnakeGame {
 
   GameConnectClientActions _actions;
