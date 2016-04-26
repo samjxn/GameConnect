@@ -25,9 +25,9 @@ class _GameDisplayComponent extends flux
   render() {
     // don't remake the canvas
     canvas ??= react.canvas({
-      'id': "snake-canvas",
-      "height": "${window.innerHeight}",
-      "width": "${window.outerHeight}"
+      'id': "game-canvas",
+      "height": "${window.innerHeight * .9}",
+      "width": "${window.innerHeight}"
     }, []);
 
     return react.div({

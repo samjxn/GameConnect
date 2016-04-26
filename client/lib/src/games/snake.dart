@@ -1,6 +1,8 @@
 part of game_connect_client.src.games;
 
-class SnakeGame extends IGCGame {
+// This would be better if it were named "Spaghetti".
+
+class SnakeGame {
 
   GameConnectClientActions _actions;
   GameConnectClientApi _api;
@@ -27,7 +29,7 @@ class SnakeGame extends IGCGame {
 
   var _gameState;
 
-  var _snakeKillTimer;
+  var _snakeMoveTimer;
 
 
   SnakeGame() {
@@ -45,7 +47,7 @@ class SnakeGame extends IGCGame {
     this._api = api;
     this._actions = actions;
 
-    this._canvas = querySelector('#snake-canvas');
+    this._canvas = querySelector('#game-canvas');
     this._ctx = _canvas.getContext('2d');
 
     this._renderer = new _CellRenderer(_canvas, _ctx, _CELL_SIZE);
@@ -87,21 +89,24 @@ class SnakeGame extends IGCGame {
 
       if (snapshot.aPressed) {
         _gameState = _drawGameUpdate;
-        _snakeKillTimer = new Timer(const Duration(seconds: 10), _killStationarySnakes);
+        _snakeMoveTimer = new Timer(const Duration(seconds: 2), _moveStationarySnakes);
       }
      if (snapshot.bPressed) {
        // quit game
-       _actions.setCurrentComponent(Screens.GROUPING_SCREEN);
+       _api.sendQuitGameMessage();
+       _actions.onQuit();
      }
     }
 
     else if  (_gameState == _displayGameEndMessage) {
       if (snapshot.aPressed){
+        _snakeMoveTimer = new Timer(const Duration(seconds: 2), _moveStationarySnakes);
         resetGame();
       }
       if (snapshot.bPressed) {
         // quit game
-        _actions.setCurrentComponent(Screens.GROUPING_SCREEN);
+        _api.sendQuitGameMessage();
+        _actions.onQuit();
       }
     }
 
@@ -141,11 +146,10 @@ class SnakeGame extends IGCGame {
     run();
   }
 
-  _killStationarySnakes() {
+  _moveStationarySnakes() {
     _snakes.forEach((Snake s){
       if (s._dir == null) {
-        s.kill();
-        _playersInGame--;
+        s._setInitialDirection();
       }
     });
   }
@@ -396,7 +400,7 @@ class Snake {
     isDead = false;
     _toGrow = 0;
 
-    _setInitialDirection();
+    _dir = null;
     _body = _getInitialBody();
     _initBodyCollisions();
     _setColor();
@@ -409,7 +413,10 @@ class Snake {
   }
 
   void _setInitialDirection() {
-    _dir = null;
+
+    var x = head - _body[1];
+
+     _nextDir = x;
   }
 
   void _setColor() {
@@ -494,12 +501,11 @@ class Snake {
       return;
     }
 
-    var nextCellOccupant = _board._collisionMap[head + _dir];
-
     if (_deathImpending()) {
       this.kill();
     }
 
+    var nextCellOccupant = _board._collisionMap[head + _dir];
     if (nextCellOccupant is Food) {
       _toGrow += nextCellOccupant.growthAmount * 10;
       _board.addFood();

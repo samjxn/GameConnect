@@ -4,7 +4,7 @@ import 'package:w_flux/w_flux.dart' as flux;
 import 'package:client/src/game_connect_actions.dart';
 import 'package:client/src/api.dart';
 import 'package:client/src/game_connect_client_models.dart';
-import 'dart:async';
+import 'dart:html';
 
 // Parts
 part 'stores/grouping_screen_store.dart';

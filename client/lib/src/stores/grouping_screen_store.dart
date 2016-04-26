@@ -28,7 +28,7 @@ class GroupingScreenStore extends flux.Store {
   }
 
   void _onQuit(_) {
-    _onSetComponent(Screens.GROUPING_SCREEN);
+    window.location.reload();
   }
 
   void _onGroupCodeReceived(String code) {
@@ -40,8 +40,6 @@ class GroupingScreenStore extends flux.Store {
   if (componentName != Screens.GROUPING_SCREEN) {
     return;
   }
-
-
   if (!_groupCodeRequestMade) {
       _groupCodeRequestMade = true;
       _groupCodeRequestMade = _api.requestGroupingCode();
