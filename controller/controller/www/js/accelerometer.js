@@ -15,6 +15,7 @@ function initAcc() {
   pollingAcc = false;
 }
 
+// Accelerometer needs to know what view we are on
 function updateView(view) {
   currentView = view;
 }
@@ -78,8 +79,8 @@ function accSuccess(acceleration) {
       break;
   }
 
+    // Update acceleration counter
     accCounter = accCounter + 1;
-
 }
 
 // Error callback for getting acceleration
@@ -87,12 +88,14 @@ function accError() {
   console.log('Error checking accelerometer data');
 }
 
+// Calibrate by calculating acerage of first five data points
 function calibrateAcceleration() {
   calibrationFactor.x = (accData.x[0] + accData.x[1] + accData.x[2] + accData.x[3] + accData.x[4]) / 5;
   calibrationFactor.y = (accData.y[0] + accData.y[1] + accData.y[2] + accData.y[3] + accData.y[4]) / 5;
   calibrationFactor.z = (accData.z[0] + accData.z[1] + accData.z[2] + accData.z[3] + accData.z[4]) / 5;
 }
 
+// If we are in debug mode, update view with acceleration data
 function modeDebug() {
   if (accCounter < 5) {
     var html =
@@ -117,14 +120,18 @@ function modePortraitController() {
     if (waitTime > 0) {               // prevent events from being double counted
       waitTime = waitTime - 1;
     } else {
+
+      // Find change in X and Y acceleration over last two data points
       var changeX1 = accData.x[0] - accData.x[1];
       var changeX2 = accData.x[0] - accData.x[2];
       var changeY1 = accData.y[0] - accData.y[1];
       var changeY2 = accData.y[0] - accData.y[2];
 
+      // Compare against calibrated zero
       var xDif = accData.x[0] - calibrationFactor.x;
       var yDif = accData.y[0] - calibrationFactor.y;
 
+      // If X difference is greater than four and change is greater than 6, trigger event
       if(xDif > 4 && (changeX1 > 6 || changeX2 > 6)) {
         console.log("Left");
         waitTime = 2;
@@ -133,6 +140,7 @@ function modePortraitController() {
         waitTime = 2;
       }
 
+      // If Y difference is greater than four and change is greater than 6, trigger event
       if(yDif > 4 && (changeY1 > 6 || changeY2 > 6)) {
         console.log("Up");
         waitTime = 2;
@@ -149,10 +157,13 @@ function modeLandscapeController() {
   if (accCounter < 5) {                                         // still calibrating
     console.log("Calibrating device, please wait...");
   } else {                                                      // done calibrating
+
+    // Use average of last three data points to smooth acceleration changes
     var average = ( (accData.y[0] - calibrationFactor.y) +
                     (accData.y[1] - calibrationFactor.y) +
                     (accData.y[2] - calibrationFactor.y) / 3);
 
+    // Greater than one means right, less than negative one means left, in between is straight
     if(average > 1) {
       console.log("Right: (" + Math.round(average) + ")");
     } else if (average < -1){

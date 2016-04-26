@@ -7,6 +7,7 @@
     var webSocket;                    // websocket connection
     var groupId;                      // assigned by server
     var clientId;                     // assigned by server
+    var fbCode;                       // code used to pair with Facebook
     var timeout;                      // for keeping track of time
     var gamesList;                    // list of games recieved from server
 
@@ -81,6 +82,9 @@
           case "context-selected":
             console.log("Server recieved game choice");
             break;
+          case "settings":
+            updateFacebookCode(data);
+            renderSettingsView();
           case "controller-snapshot":
             console.log("Server recieved controller input");
             break;
@@ -88,7 +92,7 @@
             gameConfig(data);
             break;
           case "set-color":
-            updateColor(data);
+            setColor(data);
             break;
           case "chat-msg":
             console.log("Recieved a chat message");
@@ -142,6 +146,9 @@
           break;
         case "select":
           navigator.notification.confirm("Are you sure you want to leave this session and return to the pairing screen?", onLeaveSessionDialog, "End Session", ["Yes", "Cancel"]);
+          break;
+        case "settings":
+          renderGameSelectView();
           break;
         case "portrait":
           if(previousView === "debug") {
@@ -416,7 +423,6 @@
       if(data.content.groupingApproved === true) {
         console.log("Successfully joined group " + data.groupId);
         groupId = data.groupId;
-        clientId = data.clientId;
         document.getElementById('message').innerHTML = "Success";
         document.getElementById('pairButton').className = "button";
         document.getElementById('message').style.color = '##4CAF50';
@@ -465,11 +471,20 @@
       }
     }
 
+    // Update Facebook pairing code with data from server
+    function updateFacebookCode(data) {
+      fbCode = data.content.paircode;
+      console.log("Recieved Facebook pair code " + fbCode);
+    }
+
+    // Update controller color to match player color in game
     function setColor(data) {
-      if (currentView === (portrait || landscape) && data.content.clientId === clientId) {
+      if ((currentView === "portrait" || currentView === "landscape") && data.content.clientId == clientId) {
         document.getElementById('application').style.backgroundColor = data.content.color;
         console.log("Updating controller color");
       }
+      console.log("Recieved set color command but client id did not match");
+      console.log("Client id is " + clientId);
     }
 
     // Server has sent an error message
@@ -482,6 +497,7 @@
     // Render the Home View
     function renderHomeView() {
       stopAcc();
+      document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<h1>Pair With Computer</h1>" +
         "<div id='message'>Start Typing</div>" +
@@ -501,6 +517,7 @@
     // Render the Game Select View
     function renderGameSelectView() {
       stopAcc();
+      document.getElementById('application').style.backgroundColor = "#000000";
 
       // Generate html for list of games
       var gameListHTML = "";
@@ -525,8 +542,24 @@
       console.log('Game Select view rendered');
     }
 
+    // Render the settings view
+    function renderSettingsView() {
+      document.getElementById('application').style.backgroundColor = "#000000";
+      var html =
+        "<h1>Settings</h1>" +
+        "<div id='fbCode'>" + fbCode + "</div>";
+      document.getElementById('application').innerHTML = html;
+
+      // Update views and log
+      previousView = currentView;
+      currentView = "settings";
+      updateView(currentView);
+      console.log('Settings view rendered');
+    }
+
     // Render the Portrait Game Contoller view with Motion Remote (unfinished)
     function renderPortraitControllerView() {
+      document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<button type='button' class='controllerButton' id='portraitButtonA'>A</button>" +
         "<button type='button' class='controllerButton' id='portraitButtonB'>B</button>" +
@@ -551,6 +584,7 @@
 
     // Render the Landscape Game Controller view with Steering Wheel
     function renderLandscapeControllerView() {
+      document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<button type='button' class='controllerButtonLandscape' id='controllerButtonA'>A</button>" +
         "<button type='button' class='controllerButtonLandscape' id='controllerButtonB'>B</button>" +
@@ -576,6 +610,7 @@
     // Render the Debug View
     function renderDebugView() {
       stopAcc();
+      document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<h1>Debug</h1>" +
         "<input type='text' placeholder='Write to WebSocket' id='debugInput'><br>" +
@@ -601,6 +636,7 @@
 
     // Render the Chat View
     function renderChatView() {
+      document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<h1>Chat</h1>" +
         "<div id='chatMessage'> Type your message here </div>" +
