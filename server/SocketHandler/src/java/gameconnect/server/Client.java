@@ -70,9 +70,9 @@ public class Client {
     }
 
     public void setName(String name) {
-        if(name == null || name.equalsIgnoreCase("null")){
+        if (name == null || name.equalsIgnoreCase("null")) {
             String[] randNames = new String[]{"Samantha", "Davida", "Ryaness", "Mikey", "Chocolate", "Vanilla", "Danger", "Phillis"};
-            this.name = randNames[(int)(ConnectionHandler.randomSingleton().nextDouble() * (randNames.length - 1))];
+            this.name = randNames[(int) (ConnectionHandler.randomSingleton().nextDouble() * (randNames.length - 1))];
         }
         this.name = name;
     }
@@ -88,16 +88,19 @@ public class Client {
     public String getUUID() {
         return uuid;
     }
-    
-    public User getUser(){
+
+    public User getUser() {
         return user;
     }
 
     public void disconnect() {
         //TODO: this
+        disconnected = true;
         try {
-            sendMessage(new DisconnectMessage(getGroup().getGroupID()), DisconnectMessage.class);
-            session.close();
+            if (session.isOpen()) {
+                sendMessage(new DisconnectMessage(getGroup().getGroupID()), DisconnectMessage.class);
+                session.close();
+            }
         } catch (java.io.IOException ioe) {
             ioe.printStackTrace();
         }

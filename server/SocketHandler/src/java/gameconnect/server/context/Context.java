@@ -45,5 +45,5 @@ public abstract class Context {
      * 
      * @return 
      */
-    public abstract int getContextID();
+    public abstract int getScoreContextID();
 }

@@ -59,12 +59,12 @@
 }").replace("/score", "{\n\
     \"groupId\": " + groupID + ",\n\
     \"clientId\": \"" + clientID + "\",\n\
-    \"sourceType\":\"controller\",\n\
+    \"sourceType\":\"pc-client\",\n\
     \"messageType\":\"score\",\n\
     \"content\":\n\
         {\n\
             \"clientId\":\"0\",\n\
-            \"score\":\"100\",\n\
+            \"score\":\"100\"\n\
         }\n\
 }"));
 }
@@ -75,8 +75,8 @@
         }
         
     function loadMe(){
-        document.getElementById("messages").style.height = (window.innerHeight - 309) + "px;";
-        document.getElementById('messages').setAttribute("style","overflow-y:scroll;height: "+(window.innerHeight - 305) + "px;");
+        document.getElementById("messages").style.height = (window.innerHeight - 312) + "px;";
+        document.getElementById('messages').setAttribute("style","overflow-y:scroll;height: "+(window.innerHeight - 312) + "px;");
     }
         </script>
     </head>
@@ -92,7 +92,8 @@
         <div style="font-weight: bold">
             <button type="button" onclick="openSocket();" >Open</button>
             <button type="button" onclick="send();" >Send</button>
-            <button type="button" onclick="closeSocket();" >Close</button><br>
+            <button type="button" onclick="closeSocket();" >Close</button>
+            <span id="con_status" style="color:red; font-weight: bolder">&#x25cf;</span><br>
             <span style="color:green">sent</span> <span>received</span> <span style="color:red">error</span><br>
             ---
         </div>
@@ -112,6 +113,7 @@
         }
         // Create a new instance of the websocket
         webSocket = new WebSocket("ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect");
+        document.getElementById("con_status").setAttribute('style', 'color:lightgreen; font-weight: bolder');
         /**
          * Binds functions to the listeners for the websocket.
          */
@@ -122,21 +124,25 @@
             if (event.data === undefined)
                     return;
             writeResponse("<span style=\"color:red\">Connection opened</span>");
-
             writeResponse(event.data);
         };
         webSocket.onmessage = function(event){
             writeResponse(event.data);
-            var stuff = JSON.parse(event.data);
-            if(stuff != null && stuff.content != null && stuff.content.clientId != null){
-                document.getElementById("clientID").value = stuff.content.clientId;
+            var msg = JSON.parse(event.data);
+            if(msg != null && msg.messageType == "set-clientid" && msg.content != null && msg.content.clientId != null){
+                document.getElementById("clientID").value = msg.content.clientId;
             }
-            if(stuff != null && stuff.content != null && stuff.content.groupingCode != null){
-                document.getElementById("groupID").value = stuff.content.groupingCode;
+            if(msg != null && msg.content != null && msg.content.groupingCode != null){
+                document.getElementById("groupID").value = msg.content.groupingCode;
             }
+            if(msg != null && msg.messageType == "set-color"  && msg.content.clientId == document.getElementById("clientID").value){
+                document.getElementById("clientID").setAttribute("style", 'width: 240px;font-family: monospace;background-color:'+msg.content.color+';');
+            }
+                
         };
         webSocket.onclose = function(event){
             writeResponse("<span style=\"color:red\">Connection closed</span>");
+            document.getElementById("con_status").setAttribute('style', 'color:red; font-weight: bolder');
         };
     }
 
@@ -151,6 +157,7 @@
 
     function closeSocket(){
         webSocket.close();
+        document.getElementById("con_status").setAttribute('style', 'color:red; font-weight: bolder');
     }
 
     function writeResponse(text){

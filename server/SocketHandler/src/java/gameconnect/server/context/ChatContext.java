@@ -49,7 +49,7 @@ public class ChatContext extends Context {
     }
     
     @Override
-    public int getContextID(){
+    public int getScoreContextID(){
         return 0;
     }
 

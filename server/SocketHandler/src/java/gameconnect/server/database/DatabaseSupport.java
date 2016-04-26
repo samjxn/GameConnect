@@ -1,6 +1,7 @@
 package gameconnect.server.database;
 
 import gameconnect.server.ConnectionHandler;
+import gameconnect.server.panel.Panel;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -82,6 +83,7 @@ public class DatabaseSupport {
                 u = getUserFromRS(rs);
             }
         } catch (SQLException e) {
+            Panel.log(e.getMessage());
             e.printStackTrace();
         }
         return u;
@@ -97,6 +99,7 @@ public class DatabaseSupport {
                 l = rs.getLong(1);
             }
         } catch (SQLException e) {
+            Panel.log(e.getMessage());
             e.printStackTrace();
         }
         return l;
@@ -106,6 +109,7 @@ public class DatabaseSupport {
         try {
             int i = queryUpdate("UPDATE `db309grp16`.`users` SET `name` = '" + u.name + "', `fbid` = '" + (u.fbid == null ? 0 : u.fbid) + "', `device_uuid` = '" + ConnectionHandler.gsonSingleton().toJson(u.uuids, String[].class) + "' WHERE `users`.`uid` = " + u.uid + ";");
         } catch (SQLException e) {
+            Panel.log(e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -121,6 +125,7 @@ public class DatabaseSupport {
                 u = getUserFromRS(rs);
             }
         } catch (SQLException e) {
+            Panel.log(e.getMessage());
             e.printStackTrace();
         }
         return u;
@@ -142,6 +147,7 @@ public class DatabaseSupport {
         try {
             int i = queryUpdate("INSERT INTO `db309grp16`.`highscores` (`scoreid`, `uid`, `gameid`, `score`) VALUES (NULL, '"+s.uid+"', '"+s.gameid+"', '"+s.score+"');");
         } catch (SQLException e) {
+            Panel.log(e.getMessage());
             e.printStackTrace();
             return false;
         }

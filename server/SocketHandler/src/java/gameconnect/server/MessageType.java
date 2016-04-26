@@ -14,6 +14,7 @@ public final class MessageType {
     public final static String GROUP_CODE_RESPONSE = "group-code-response";
     public final static String CHAT_MESSAGE = "chat-msg";
     public final static String SET_CONTEXT = "set-context";
+    public final static String SET_CONTROLLER_COLOR = "set-color";
     public final static String CONTROLLER_SNAPSHOT = "controller-snapshot";
     public final static String SET_NAME = "set-name";
     public final static String QUIT_GAME = "quit-game";

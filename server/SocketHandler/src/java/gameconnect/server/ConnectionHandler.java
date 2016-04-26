@@ -19,8 +19,10 @@ import gameconnect.server.context.DebugAnyContext;
 import gameconnect.server.context.DebugContext;
 import gameconnect.server.context.SnakeContext;
 import gameconnect.server.database.DatabaseSupport;
+import gameconnect.server.database.Score;
 import gameconnect.server.database.User;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
+import gameconnect.server.panel.Panel;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -157,8 +159,7 @@ public class ConnectionHandler {
 
             case MessageType.JOIN_GROUP:
                 if (incomingMessage.getGroupId() == null
-                        && incomingMessage.getSourceType().equals(SourceType.CONTROLLER) /*&& 
-                        incommingMessage.getContent() != null*/) {
+                        && incomingMessage.getSourceType().equals(SourceType.CONTROLLER)) {
                     // get the grouping code from the message
                     GroupingCodeMessage incommingGroupCodeMessage = gson.fromJson(messageJson, GroupingCodeMessage.class);
 
@@ -167,6 +168,18 @@ public class ConnectionHandler {
                     // trim the zeroes
 
                     ClientGroup group = openGroups.get(groupingCode);
+                    if (group.inContext()) {
+                        sender = new ToSessionSender(session);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR,
+                                new ErrorMessageContent("Group already in context."));
+                        break;
+                    }
+                    if (!group.active) {
+                        sender = new ToSessionSender(session);
+                        response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR,
+                                new ErrorMessageContent("Group in-active."));
+                        break;
+                    }
 
                     // find the open group in the hash map
                     // put the client into the group.
@@ -188,6 +201,7 @@ public class ConnectionHandler {
                             //do something?
                         } else {
                             u = User.createUser(content.getName(), content.getUUID());
+                            Panel.log("Created user " + content.getName() + " for " + content.getUUID());
                         }
                         controllerClient.user = u;
 
@@ -216,11 +230,10 @@ public class ConnectionHandler {
                 c = getClient(session);
                 if (c != null) {
                     if (c.getGroup() != null && c.getGroup().context != null) {
-                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                        c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
                         c.getGroup().context.onClose(c);
                     } else if (c.getGroup() != null && c.getGroup().context == null) {
-                        c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
-                        c.getGroup().disconnect(c);
+                        c.getGroup().softDisconnect(c);
                     }
                     c.disconnected = true;
                 }
@@ -229,10 +242,42 @@ public class ConnectionHandler {
 
             case MessageType.QUIT_GAME:
                 c = getClient(session);
-                if (c != null && c.getGroup() != null && c.getGroup().context != null) {
+                if (c == null) {
+                    Panel.log("@QUIT_GAME: c==null ["+session.getId()+"]");
+                    break;
+                }
+                if (c.clientType == ClientType.PC || incomingMessage.getSourceType().equals(SourceType.PC_CLIENT)) {
                     c.getGroup().sendToAll(messageJson);
-                    c.getGroup().context.endContext();
+                    c.getGroup().disconnect(c);
+                } else {
+                    if (c.getGroup() != null && c.getGroup().context != null) {
+                        c.getGroup().context.onClose(c);
+                    } else {
+                        c.disconnect();
+                    }
+                }
+//                if (c != null && c.getGroup() != null && c.getGroup().context != null) {
+//                    c.getGroup().sendToAll(messageJson);
+//                    c.getGroup().context.endContext();
+//                    sent = true;
+//                }
+                sent = true;
+                break;
+
+            case MessageType.SCORE:
+                c = getClient(session);
+                if (c != null && c.getGroup() != null && c.getGroup().context != null && c.getGroup().context.getScoreContextID() != 0) {
                     sent = true;
+                    ScoreMessage scoreMessage = gson.fromJson(messageJson, ScoreMessage.class);
+                    if (scoreMessage.getContent().score < 1) {
+                        break;
+                    }
+                    Score score = new Score();
+                    score.gameid = c.getGroup().context.getScoreContextID();
+                    score.uid = ConnectionHandler.getClient(scoreMessage.getContent().clientId).getUser().uid;
+                    score.score = scoreMessage.getContent().score;
+                    score.scoreid = -1;
+                    DatabaseSupport.getSingleton().addScore(score);
                 }
                 break;
 
@@ -293,9 +338,8 @@ public class ConnectionHandler {
                         if (c != null) {
                             try {
                                 //don't send to all
-//                            c.user;
-
                                 c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"context-selected\",\"content\": { \"contextName\":\"settings\" } }");
+                                c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"settings\",\"content\": { \"paircode\":\"" + c.user.getUUIDs()[0] + "\" } }");//,\"pair-code-uuid\":\""+c.user.getUUIDs()[0]+"\"
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
@@ -334,13 +378,14 @@ public class ConnectionHandler {
             }
 
             if (sendGameList) {
-                session.getBasicRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\", \"chat\", \"settings\"] } }");
+                session.getAsyncRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",  \"coins\", \"chat\", \"settings\"] } }");
             }
 
         } catch (IOException ex) {
+            Panel.log(ex.getMessage());
             ex.printStackTrace();
         }
-        println("Time Elapsed: " + (System.nanoTime() - ns_start) + "ns | " + (System.currentTimeMillis() - ms_start) + "ms");
+        //println("Time Elapsed: " + (System.nanoTime() - ns_start) + "ns | " + (System.currentTimeMillis() - ms_start) + "ms");
     }
 
     /**
@@ -355,16 +400,17 @@ public class ConnectionHandler {
         if (c == null) {
             return;
         }
-        if (!c.disconnected) {
-            if (c.clientType == ClientType.PC) {
-                //nuke the group, since only one pc per group
-                c.getGroup().disconnect(c);
-            } else if (c.getGroup() != null && c.getGroup().context != null) {
-                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+        if (c.clientType == ClientType.PC && c.getGroup() != null) {
+            //nuke the group, since only one pc per group
+            c.getGroup().disconnect(c);
+        } else if (!c.disconnected) {
+            if (c.getGroup() != null && c.getGroup().context != null) {
+                //c.getGroup().softDisconnect(c);
+                //c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
                 c.getGroup().context.onClose(c);
             } else if (c.getGroup() != null && c.getGroup().context == null) {
-                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
-                c.getGroup().disconnect(c);
+//                c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), c.getGroup().getGroupID()), SoftDisconnectMessage.class);
+                c.getGroup().softDisconnect(c);
             }
             c.disconnected = true;
         }
@@ -377,6 +423,7 @@ public class ConnectionHandler {
         }
         return null;
     }
+
     public static Client getClient(String sesh) {
         if (sesh != null) {
             return clients.get(sesh);
@@ -386,6 +433,7 @@ public class ConnectionHandler {
 
     private static void println(String s) {
         System.out.println("[GameConnect]: " + s);
+        Panel.log(s);
     }
 
     /**
