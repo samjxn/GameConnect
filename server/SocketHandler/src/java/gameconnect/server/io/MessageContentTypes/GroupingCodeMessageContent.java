@@ -9,12 +9,27 @@ package gameconnect.server.io.MessageContentTypes;
 public class GroupingCodeMessageContent extends MessageContent {
     
     private String groupingCode;
+    private String name;
+    private String uuid;
+    
+    public GroupingCodeMessageContent(String groupingCode, String name){
+        this.groupingCode = groupingCode;
+        this.name = name;
+    }
     
     public GroupingCodeMessageContent(String groupingCode){
-        this.groupingCode = groupingCode;
+        this(groupingCode, null);
     }
     
     public String getGroupingCode(){
         return this.groupingCode;
+    }
+    
+    public String getName(){
+        return name;
+    }
+    
+    public String getUUID(){
+        return uuid;
     }
 }

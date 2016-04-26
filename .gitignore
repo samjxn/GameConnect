@@ -66,3 +66,4 @@ genfiles.properties
 /controller/controller/hooks
 /server/SocketHandler/nbproject/project.properties
 server/SocketHandler/.idea
+/server/gc-portal/nbproject/private/

@@ -17,7 +17,7 @@ public class ToSessionSender implements SendStrategy {
     
     @Override
     public void sendMessage(String messageJson) throws IOException {
-        session.getBasicRemote().sendText(messageJson);
+        session.getAsyncRemote().sendText(messageJson);
     }
     
 }

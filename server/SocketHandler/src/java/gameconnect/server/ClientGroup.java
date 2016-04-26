@@ -3,6 +3,8 @@ package gameconnect.server;
 import gameconnect.server.context.Context;
 import gameconnect.server.io.MessageTypes.DisconnectMessage;
 import gameconnect.server.io.MessageTypes.Message;
+import gameconnect.server.io.MessageTypes.SoftDisconnectMessage;
+import gameconnect.server.panel.Panel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,36 +18,40 @@ import java.lang.reflect.Type;
 public class ClientGroup {
 
     /**
-     * List of all clients within this group
+     * List of all clients within this group.
      */
     public List<Client> clients;
 
     /**
-     * The group identifier
+     * The group identifier.
      */
     private String groupId;
-    
-    public String getGroupID(){
-        return groupId;
-    }
 
+    /**
+     * The current context for this group, null if not in a context.
+     */
     public Context context = null;
 
     /**
-     * 
-     * @param id 
+     * True before all clients disconnect.
      */
-    @Deprecated
+    public boolean active = true;
+
+    /**
+     *
+     * @param id
+     */
     protected ClientGroup(String id) {
         this.groupId = id;
         this.clients = new ArrayList<>();
     }
 
     /**
-     * 
+     *
      * @param openingClient
-     * @param groupId 
+     * @param groupId
      */
+    @Deprecated
     protected ClientGroup(Client openingClient, String groupId) {
         if (openingClient == null || groupId == null) {
             throw new NullPointerException();
@@ -57,54 +63,58 @@ public class ClientGroup {
     }
 
     /**
-     * 
-     * @param c 
+     *
+     * @param c
      */
     protected void giveClient(Client c) {
         if (c == null) {
             throw new NullPointerException();
         }
 
-        if (!this.clients.contains(c)) {
-            this.clients.add(c);
+        if (!clients.contains(c)) {
+            clients.add(c);
         }
     }
 
     /**
-     * 
-     * @param msg 
+     *
+     * @param msg
      */
     public void sendToAll(String msg) {
-        if (msg == null) {
+        if (msg == null || msg.isEmpty()) {
             throw new NullPointerException();
         }
 
         for (Client c : this.clients) {
             try {
-                c.session.getBasicRemote().sendText(msg);
+                c.sendText(msg);
             } catch (IOException e) {
+                Panel.log(e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-    
+
     /**
-     * 
+     *
      * @param m
-     * @param t 
+     * @param t
      */
-    public void sendToAll(Message m, Type t){
+    public void sendToAll(Message m, Type t) {
         if (m == null || t == null) {
             throw new NullPointerException();
         }
-        if(false){
-            //implement checking to ensure type t is a valid subclass of Message
+        if (false) {
+            //TODO: implement checking to ensure type t is a valid subclass of Message
         }
 
         for (Client c : this.clients) {
             try {
-                c.sendMessage(m, t);
+                if (!c.disconnected) {
+                    c.sendMessage(m, t);
+                }
             } catch (IOException e) {
+                Panel.log(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -126,8 +136,9 @@ public class ClientGroup {
                 continue;
             }
             try {
-                c.session.getBasicRemote().sendText(msg);
-            } catch (IOException e) {
+                c.sendText(msg);
+            } catch (Exception e) {
+                Panel.log(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -151,18 +162,55 @@ public class ClientGroup {
             try {
                 c.sendMessage(m, t);
             } catch (IOException e) {
+                Panel.log(e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-    
+
+    /**
+     * Disconnect the entire group starting with @param c
+     *
+     * @param c the client disconnecting
+     */
     public void disconnect(Client c) {
-        clients.remove(c);
-        sendToAll(new DisconnectMessage(groupId), DisconnectMessage.class);
+        Panel.log("Disconnecting Group " + groupId);
+        try {
+            c.disconnect();
+            clients.remove(c);
+            //sendToAll(null);
+            for (int i = 0; i < clients.size(); i++) {
+                Client cl = clients.get(i);
+                cl.sendMessage(new DisconnectMessage(groupId), DisconnectMessage.class);
+                cl.disconnect();
+            }
+            active = false;
+        } catch (Exception e) {
+            Panel.log(e.getMessage());
+        }
         clients.clear();
     }
-    
-    public boolean inContext(){
+
+    /**
+     * Disconnect without disconnecting the entire group.
+     *
+     * @param c the client disconnecting
+     */
+    public void softDisconnect(Client c) {
+        c.getGroup().sendToAll(new SoftDisconnectMessage(c.getClientID(), getGroupID()), SoftDisconnectMessage.class);
+        c.disconnect();
+        clients.remove(c);
+        Panel.log("Soft Disconnect: " + c.getClientID() + "(" + getGroupID() + ")");
+        if (clients.isEmpty()) {
+            active = false;
+        }
+    }
+
+    public String getGroupID() {
+        return groupId;
+    }
+
+    public boolean inContext() {
         return context != null;
     }
 }

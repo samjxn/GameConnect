@@ -6,11 +6,11 @@ package gameconnect.server.io.MessageContentTypes;
  */
 public class ChatMessageContent extends MessageContent {
 
-    public String from;
+    //public String from;
     public String message;
 
-    public ChatMessageContent(String from, String message){
-        this.from = from;
+    public ChatMessageContent(String message){
+        //this.from = from;
         this.message = message;
     }
     

@@ -1,0 +1,69 @@
+{
+  "groupId": null,
+  "sourceType":"pc-client",
+  "messageType": "open-new-group",
+  "content":
+    {
+    }
+}
+
+----
+
+{
+    "groupId": null,
+    "clientId": null,
+    "sourceType":"controller",
+    "messageType":"join-group",
+    "content":
+        {
+            "groupingCode":"0",
+            "name":"david",
+            "uuid":"12"
+        }
+}
+
+----
+
+{
+    "groupId": 0,
+    "clientId": 0,
+    "sourceType":"controller",
+    "messageType":"set-context",
+    "content":
+        {
+            "contextName":"snake"
+        }
+}
+
+----
+
+{
+    "groupId": null,
+    "clientId": null,
+    "sourceType":"controller",
+    "messageType":"quit-game",
+    "content":
+        {
+        }
+}
+
+----
+
+{
+    "groupId": 0,
+    "clientId": 0,
+    "sourceType":"controller",
+    "messageType":"chat-msg",
+    "content":
+        {
+            "message":"hey whats upp gurl"
+        }
+}
+
+----
+
+{
+  "groupId":"0",
+  "sourceType":"controller",
+  "messageType":"disconnect"
+}

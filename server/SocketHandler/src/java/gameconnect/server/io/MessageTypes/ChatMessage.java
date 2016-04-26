@@ -2,7 +2,6 @@ package gameconnect.server.io.MessageTypes;
 
 import gameconnect.server.MessageType;
 import gameconnect.server.io.MessageContentTypes.ChatMessageContent;
-import gameconnect.server.io.MessageContentTypes.MessageContent;
 
 /**
  *
