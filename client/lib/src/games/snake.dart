@@ -22,7 +22,7 @@ class SnakeGame {
   Map<Snake, Player> _snakePlayerMap;
 
   final int _CELL_SIZE = 10;
-  static const num GAME_SPEED = 50;
+  static const num GAME_SPEED = 100;
   num _lastTimeStamp = 0;
 
   GameBoard _board;
