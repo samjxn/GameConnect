@@ -48,6 +48,7 @@ class GameConnectClientApi {
     });
 
     _socket.onMessage.listen((MessageEvent e) {
+      print("MESSAGE: " + e.data);
       MessageReceivedStrategy m = _delegator.delegateReceivedMessage(e);
       m.executeStrategy();
     });

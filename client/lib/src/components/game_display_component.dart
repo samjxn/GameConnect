@@ -8,17 +8,20 @@ class _GameDisplayComponent extends flux
   redrawOn() => [store.gameConnectClientStore, store.gameDisplayStore];
 
   var canvas;
-  SnakeGame _game;
+  var _game;
 
   void componentDidMount(rootNode) {
     switch (store.gameDisplayStore.activeGameId) {
       case GameIds.SNAKE:
         _game = new SnakeGame();
         break;
+      case GameIds.LITE_BIKE:
+        _game = new LightBikeGame();
+        break;
     }
     store.gameDisplayStore.forwarder.registerListener(_game);
-    _game.onDidMount(
-        store.gameConnectClientStore.players, store.gameDisplayStore.api, actions);
+    _game.onDidMount(store.gameConnectClientStore.players,
+        store.gameDisplayStore.api, actions);
     _game.run();
   }
 

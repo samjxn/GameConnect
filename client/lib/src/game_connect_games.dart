@@ -9,3 +9,4 @@ import 'package:client/src/game_connect_client_models.dart';
 
 
 part 'games/snake.dart';
+part 'games/light_bike.dart';
