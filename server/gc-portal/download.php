@@ -16,7 +16,7 @@ $page['title'] = "Download Game Connect";
                     confirmButtonText: "Okay, lets try anyway!",   
                     closeOnConfirm: false }, 
                 function(){   
-                    window.location = "/download/GC-iPhone.app.zip" });            }
+                    window.location = "/download/GC-iOS.app.zip" });            }
         </script>
     </head>
     <body>

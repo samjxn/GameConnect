@@ -120,10 +120,6 @@ $_SESSION['last_name'] = $user['last_name'];
 $_SESSION['gender'] = $user['gender'];
 $_SESSION['fbpic'] = "https://graph.facebook.com/".$_SESSION['fbid'] ."/picture?width=400&height=400";
 
-
-        //require_once 'lib/facebook-sdk/src/Facebook/autoload.php';
-
-        //session_start();
 $adminIDs = array("10209377480496991","10154174372958754","962686530474583", "10207598165964942");
 
 foreach($adminIDs as $uid){
@@ -134,23 +130,6 @@ foreach($adminIDs as $uid){
     $_SESSION['role'] = 'user';
 }
 
-//require 'include/mysql.inc';
-//
-//$query = sprintf("SELECT * FROM `{$mysql_db}`.`users` WHERE `uid` = '%s'", mysql_real_escape_string($user['id']));
-//$result = mysql_query($query) or die('Invalid query (A): ' . mysql_error());
-//$data = mysql_fetch_assoc($result);
-//
-//if ($data['uid'] == $user['id']) {
-//    
-//$_SESSION['phone'] = $row['phone'];
-//    if ($_SESSION['debug'])
-//        echo "<br><b><p style=\"color: red\">exists</p></b>";
-//}else {
-//    $query = sprintf("INSERT INTO `{$mysql_db}`.`users` (`uid`, `first_name`, `last_name`, `email`, `gender`) VALUES ('%s', '%s', '%s', '%s', '%s');", mysql_real_escape_string($user['id']), mysql_real_escape_string($user['first_name']), mysql_real_escape_string($user['last_name']), mysql_real_escape_string($user['email']), gender($user['gender']));
-//    $result = mysql_query($query) or die('Invalid query (B): ' . mysql_error());
-//}
-//$_SESSION['phone'] = $row['phone'];
-//
 //// User is logged in with a long-lived access token.
 //// You can redirect them to a members-only page.
 //if(!isset($_SESSION['no-redirect'])){
