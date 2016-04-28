@@ -172,24 +172,36 @@ class LightBikeGame {
   }
 
   _displayGameEndMessage() {
+
+    _winnersName() {
+      String name;
+      _bikes.forEach((Bike b) {
+        if (!b.isDead) {
+          name = b.name;
+        }
+      });
+      return name.toUpperCase();
+    }
+
     _renderer.clear();
+
+    var titleText = _idPlayerMap.length > 1 ? _winnersName() + " WINS" : "GAME OVER";
 
     _ctx.fillStyle = "DeepPink";
     _ctx.font = "100px Orbitron";
     _ctx.textAlign = "center";
-    _ctx.fillText("Game Over", _canvas.width ~/ 2, _canvas.height ~/ 2);
+    _ctx.fillText(titleText, _canvas.width ~/ 2, _canvas.height ~/ 2);
 
     _ctx.font = "25px Orbitron";
 
     var verticalOffset = 200;
     _bikes.forEach((Bike s) {
-
-
-
       _ctx.textAlign = "right";
-      _ctx.fillText(s.name +":", _canvas.width ~/2, _canvas.height ~/2 + verticalOffset);
+      _ctx.fillText(s.name + ":", _canvas.width ~/ 2,
+          _canvas.height ~/ 2 + verticalOffset);
       _ctx.textAlign = "left";
-      _ctx.fillText("     ${s.getScore()}", _canvas.width ~/2, _canvas.height ~/2 + verticalOffset);
+      _ctx.fillText("     ${s.getScore()}", _canvas.width ~/ 2,
+          _canvas.height ~/ 2 + verticalOffset);
 
       verticalOffset += 50;
     });
