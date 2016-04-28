@@ -9,6 +9,7 @@
     var clientId;                     // assigned by server
     var fbCode;                       // code used to pair with Facebook
     var timeout;                      // for keeping track of time
+    var connectionCounter             // track attempts to connect
     var gamesList;                    // list of games recieved from server
 
     /* ---------------------------------- Accelerometer Variables ---------------------------------- */
@@ -18,7 +19,6 @@
     var accCounter;                   // track how long we've been polling
     var accData;                      // object to track acceleration data changes
     var calibrationFactor;            // calibrate acceleration on startup
-    var waitTime;                     // wait time between events
 
     /* --------------------------------- Device Ready -------------------------------- */
     document.addEventListener('deviceready', init, false);
@@ -35,6 +35,8 @@
       gamesList = [];
       watchId = undefined;
       pollingAcc = false;
+      accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
+      connectionCounter = 0;
 
       // Add event listeners
       document.addEventListener("backbutton", onBackKeyDown, false);
@@ -72,6 +74,7 @@
         }
         console.log("WebSocket connection opened at ws://proj-309-16.cs.iastate.edu:8080/SocketHandler/gameconnect");
         clearTimeout(timeout);
+        connectionCounter = 0;
         checkPairingCode();
       };
 
@@ -158,7 +161,22 @@
           break;
       }
 
-      websocketConnect();
+      connectionCounter = connectionCounter + 1;
+      if (connectionCounter < 15) {
+        websocketConnect();
+      } else {
+        navigator.notification.confirm("Unable to reach the server for 30 seconds, would you like to reset the controller?", onResetControllerDialog, "Reset Controller", ["Yes", "Cancel"]);
+      }
+    }
+
+    // Dialog for leaving a pairing session
+    function onResetControllerDialog(buttonIndex) {
+      if (buttonIndex === 1) {  // confirm
+        reset();
+      } else {
+        connectionCounter = 0;
+        websocketConnect();
+      }
     }
 
     // Reset controller
@@ -458,12 +476,14 @@
     // Server has sent a join group success messsage
     function joinGroup(data) {
       clearTimeout(timeout);
-      if(data.content.groupingApproved === true) {
+      if(data.content.groupingApproved === true && data.content.clientId === clientId) {
         console.log("Successfully joined group " + data.groupId);
         groupId = data.groupId;
         document.getElementById('message').innerHTML = "Success";
         document.getElementById('pairButton').className = "button";
         document.getElementById('message').style.color = '##4CAF50';
+      } else if (data.content.groupingApproved === true) {
+        console.log("Another player has joined group " + data.groupId);
       } else {
         console.log("Failed to join group");
         document.getElementById('message').innerHTML = "Failed to Join Group";
@@ -603,12 +623,13 @@
         "<button type='button' class='controllerButton' id='portraitButtonE'>&#8594</button>" +
         "<button type='button' class='controllerButton' id='portraitButtonS'>&#8595</button>";
       document.getElementById('application').innerHTML = html;
-      document.getElementById('portraitButtonA').onclick = function(){ sendSnapshot("a", 0); };
-      document.getElementById('portraitButtonB').onclick = function(){ sendSnapshot("b", 0); };
-      document.getElementById('portraitButtonN').onclick = function(){ sendSnapshot("1", 0); };
-      document.getElementById('portraitButtonW').onclick = function(){ sendSnapshot("4", 0); };
-      document.getElementById('portraitButtonE').onclick = function(){ sendSnapshot("2", 0); };
-      document.getElementById('portraitButtonS').onclick = function(){ sendSnapshot("3", 0); };
+      document.getElementById('portraitButtonA').onclick = function(){ sendSnapshot("a", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('portraitButtonB').onclick = function(){ sendSnapshot("b", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('portraitButtonN').onclick = function(){ sendSnapshot("1", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('portraitButtonW').onclick = function(){ sendSnapshot("4", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('portraitButtonE').onclick = function(){ sendSnapshot("2", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('portraitButtonS').onclick = function(){ sendSnapshot("3", accData.x[0], accData.y[0], accData.z[0]); };
+      accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
 
       // Update views and log
       previousView = currentView;
@@ -627,12 +648,13 @@
         "<button type='button' class='controllerButtonLandscape' id='controllerButtonN'>&#8593</button>" +
         "<button type='button' class='controllerButtonLandscape' id='controllerButtonE'>&#8594</button>";
       document.getElementById('application').innerHTML = html;
-      document.getElementById('controllerButtonA').onclick = function(){ sendSnapshot("a", 0); };
-      document.getElementById('controllerButtonB').onclick = function(){ sendSnapshot("b", 0); };
-      document.getElementById('controllerButtonW').onclick = function(){ sendSnapshot("4", 0); };
-      document.getElementById('controllerButtonS').onclick = function(){ sendSnapshot("3", 0); };
-      document.getElementById('controllerButtonN').onclick = function(){ sendSnapshot("1", 0); };
-      document.getElementById('controllerButtonE').onclick = function(){ sendSnapshot("2", 0); };
+      document.getElementById('controllerButtonA').onclick = function(){ sendSnapshot("a", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('controllerButtonB').onclick = function(){ sendSnapshot("b", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('controllerButtonW').onclick = function(){ sendSnapshot("4", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('controllerButtonS').onclick = function(){ sendSnapshot("3", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('controllerButtonN').onclick = function(){ sendSnapshot("1", accData.x[0], accData.y[0], accData.z[0]); };
+      document.getElementById('controllerButtonE').onclick = function(){ sendSnapshot("2", accData.x[0], accData.y[0], accData.z[0]); };
+      accData = {x: [0,0,0,0,0], y: [0,0,0,0,0], z: [0,0,0,0,0]};
 
       // Update views and log
       previousView = currentView;
@@ -642,7 +664,6 @@
 
     // Render the Debug View
     function renderDebugView() {
-      stopAcc();
       document.getElementById('application').style.backgroundColor = "#000000";
       var html =
         "<h1>Debug</h1>" +
@@ -685,7 +706,7 @@
 
     /* ---------------------------------- Accelerometer Data ---------------------------------- */
 
-    // Toggle acceleration tracking
+    // Start acceleration tracking
     function startAcc() {
       if (pollingAcc === false) {
 
@@ -732,20 +753,14 @@
       }
 
       // Action based on current view
-      switch(currentView) {
-        case "debug":
-          modeDebug();
-          break;
-        case "portrait":
-          modePortraitController();
-          break;
-        case "landscape":
-          modeLandscapeController();
-          break;
+      if (currentView === "debug") {
+        modeDebug();
+      } else {
+        modeController();
       }
 
-        // Update acceleration counter
-        accCounter = accCounter + 1;
+      // Update acceleration counter
+      accCounter = accCounter + 1;
     }
 
     // Error callback for getting acceleration
@@ -777,48 +792,8 @@
       }
     }
 
-    // Motion remote mode
-    function modePortraitController() {
-      if (accCounter < 5) {                                        // still calibrating
-        console.log("Calibrating device, please wait...");
-      } else {                                                     // done calibrating
-        if (waitTime > 0) {               // prevent events from being double counted
-          waitTime = waitTime - 1;
-        } else {
-
-          // Find change in X and Y acceleration over last two data points
-          var changeX1 = accData.x[0] - accData.x[1];
-          var changeX2 = accData.x[0] - accData.x[2];
-          var changeY1 = accData.y[0] - accData.y[1];
-          var changeY2 = accData.y[0] - accData.y[2];
-
-          // Compare against calibrated zero
-          var xDif = accData.x[0] - calibrationFactor.x;
-          var yDif = accData.y[0] - calibrationFactor.y;
-
-          // If X difference is greater than four and change is greater than 6, trigger event
-          if(xDif > 4 && (changeX1 > 6 || changeX2 > 6)) {
-            console.log("Left");
-            waitTime = 2;
-          } else if(xDif < -4 && (changeX1 < -6 || changeX2 < -6)) {
-            console.log("Right");
-            waitTime = 2;
-          }
-
-          // If Y difference is greater than four and change is greater than 6, trigger event
-          if(yDif > 4 && (changeY1 > 6 || changeY2 > 6)) {
-            console.log("Up");
-            waitTime = 2;
-          } else if(yDif < -4 && (changeY1 < -6 || changeY2 < -6)) {
-            console.log("Down");
-            waitTime = 2;
-          }
-        }
-      }
-    }
-
-    // Steering wheel mode
-    function modeLandscapeController() {
+    // Controller acceleration data
+    function modeController() {
 
       // Use average of last three data points to smooth acceleration changes
       var average_x = Math.round(((accData.x[0] + accData.x[1] + accData.x[2]) / 3));
