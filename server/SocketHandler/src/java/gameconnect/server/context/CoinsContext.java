@@ -10,22 +10,21 @@ import javax.websocket.Session;
  *
  * @author davidboschwitz
  */
-public class SnakeContext extends Context {
+public class CoinsContext extends Context {
 
-    public SnakeContext(ClientGroup group) {
+    public CoinsContext(ClientGroup group) {
         super(group);
         group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 3 } }");
-        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"red\", \"clientId\":\"" + group.clients.get(1).getClientID() + "\" } }");
-        if (group.clients.size() > 2) {
-            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"blue\", \"clientId\":\"" + group.clients.get(2).getClientID() + "\" } }");
-        }
-        if (group.clients.size() > 3) {
-            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"yellow\", \"clientId\":\"" + group.clients.get(3).getClientID() + "\" } }");
-        }
-        if (group.clients.size() > 4) {
-            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"green\", \"clientId\":\"" + group.clients.get(4).getClientID() + "\" } }");
-        }
-        //no limits on number of group members for this context
+//        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"red\", \"clientId\":\"" + group.clients.get(1).getClientID() + "\" } }");
+//        if (group.clients.size() > 2) {
+//            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"blue\", \"clientId\":\"" + group.clients.get(2).getClientID() + "\" } }");
+//        }
+//        if (group.clients.size() > 3) {
+//            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"yellow\", \"clientId\":\"" + group.clients.get(3).getClientID() + "\" } }");
+//        }
+//        if (group.clients.size() > 4) {
+//            group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"green\", \"clientId\":\"" + group.clients.get(4).getClientID() + "\" } }");
+//        }
     }
 
     @Override
@@ -62,7 +61,7 @@ public class SnakeContext extends Context {
 
     @Override
     public int getScoreContextID() {
-        return 1;
+        return 3;
     }
 
 }

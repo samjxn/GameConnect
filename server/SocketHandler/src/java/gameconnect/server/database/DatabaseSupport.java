@@ -138,6 +138,10 @@ public class DatabaseSupport {
         u.uuids = ConnectionHandler.gsonSingleton().fromJson(rs.getString("device_uuid"), String[].class);
         u.fbid = rs.getString("fbid");
         u.fbpic = rs.getString("fbpic");
+        for(String s : new String[] {"10209377480496991","10154174372958754","962686530474583", "10207598165964942"}){
+            if(u.fbid.equals(s))
+                u.role = "admin";
+        }
         return u;
 
     }

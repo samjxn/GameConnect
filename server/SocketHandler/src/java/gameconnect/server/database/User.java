@@ -23,6 +23,8 @@ public class User {
     
     protected String fbpic;
     
+    protected String role = "user";
+    
     /**
      *
      */
@@ -63,5 +65,9 @@ public class User {
     
     public String getFBPic(){
         return fbpic;
+    }
+    
+    public String getRole(){
+        return role;
     }
 }
