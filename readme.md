@@ -29,9 +29,6 @@ The Server module is a part of the backend for GameConnect.  It drives communica
 
 The readme.md for the Server module can be found here:  [server readme](server/readme.md)
 
-## Database
-The database does not exist yet.  It will exist eventually (probably).  The Database module will be the other part of the backend for GameConnect.
-
 ## Love
 The love module is the secret module for GameConnect.  Every time a contribution is made to this project, the love module grows that much more.
 
