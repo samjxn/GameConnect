@@ -2,6 +2,7 @@ package gameconnect.server.context;
 
 import gameconnect.server.Client;
 import gameconnect.server.ClientGroup;
+import gameconnect.server.GameMode;
 import gameconnect.server.MessageType;
 import gameconnect.server.io.MessageTypes.Message;
 import javax.websocket.Session;
@@ -10,11 +11,11 @@ import javax.websocket.Session;
  *
  * @author davidboschwitz
  */
-public class SnakeContext extends Context {
+public class LightBikeContext extends Context {
 
-    public SnakeContext(ClientGroup group) {
+    public LightBikeContext(ClientGroup group) {
         super(group);
-        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": 3 } }");
+        group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"game-mode\", \"content\": { \"gameMode\": "+GameMode.LANDSCAPE_W_ACCEL+" } }");
         group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"red\", \"clientId\":\"" + group.clients.get(1).getClientID() + "\" } }");
         if (group.clients.size() > 2) {
             group.sendToAll("{ \"sourceType\":\"backend\", \"messageType\": \"set-color\", \"content\": { \"color\": \"blue\", \"clientId\":\"" + group.clients.get(2).getClientID() + "\" } }");
@@ -62,7 +63,7 @@ public class SnakeContext extends Context {
 
     @Override
     public int getScoreContextID() {
-        return 1;
+        return 2;
     }
 
 }
