@@ -50,6 +50,11 @@ public class DatabaseSupport {
     }
 
     private void open() {
+        try{
+            close();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
         try {
             connection = DriverManager.getConnection(DB_URL, USER, PASS);
         } catch (SQLException sqle) {
@@ -64,10 +69,14 @@ public class DatabaseSupport {
     }
 
     public ResultSet querySelect(String sql) throws SQLException {
+        if(connection.isClosed())
+            open();
         return connection.createStatement().executeQuery(sql);
     }
 
     public int queryUpdate(String sql) throws SQLException {
+        if(connection.isClosed())
+            open();
         return connection.createStatement().executeUpdate(sql);
     }
 
