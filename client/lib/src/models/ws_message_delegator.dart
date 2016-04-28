@@ -47,6 +47,9 @@ class WebSocketMessageDelegator {
       case MessageTypes.SOFT_DISCONNECT:
         strategy = new SoftDisconnectStrategy(_actions, jsonData);
         break;
+      case MessageTypes.CHAT_MESSAGE:
+        strategy = new ChatMessageReceivedStrategy(_actions, jsonData);
+        break;
       default:
         print("COULD NOT CREATE MESSAGE STRATEGY:  ${jsonData.toString()}");
         strategy = new DoNothingStrategy();

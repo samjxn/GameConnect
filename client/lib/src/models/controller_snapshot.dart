@@ -7,13 +7,15 @@ class ControllerSnapshot {
   bool _aPressed;
   bool _bPressed;
   String _senderId;
+  int _accelX;
+  int _accelY;
+  int _accelZ;
 
   String get dpadInput => _dpadInput;
   bool get aPressed => _aPressed;
   bool get bPressed => _bPressed;
   String get senderId => _senderId;
-
-  //{"clientId":"f407fe13-4699-42da-9b80-6b113a2cff65","groupId":"1","sourceType":"controller","messageType":"controller-snapshot","content":{"d-pad-input":"2","a-pressed":false,"b-pressed":false}}
+  int get tilt => _accelY;
 
   ControllerSnapshot.fromJsonMap(Map jsonData) {
     var jsonDataContent = jsonData['content'];
@@ -21,6 +23,9 @@ class ControllerSnapshot {
     _dpadInput = jsonDataContent['d-pad-input'];
     _aPressed = jsonDataContent['a-pressed'];
     _bPressed = jsonDataContent['b-pressed'];
+    _accelX = jsonDataContent['acceleration-x'];
+    _accelY = jsonDataContent['acceleration-y'];
+    _accelZ = jsonDataContent['acceleration-z'];
   }
 
 

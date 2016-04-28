@@ -17,6 +17,7 @@ part 'components/main_content_component.dart';
 part 'components/grouping_screen_component.dart';
 part 'components/level_select_screen_component.dart';
 part 'components/game_display_component.dart';
+part 'components/chat_demo_component.dart';
 
 var gameConnectClientComponent =
   react.registerComponent(() => new _GameConnectClientComponent());

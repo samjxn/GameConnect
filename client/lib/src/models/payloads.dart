@@ -11,3 +11,13 @@ class RegisterClientPayload {
   RegisterClientPayload(this._clientId, this._displayName);
 }
 
+class ChatPayload {
+  String _clientId;
+  String _message;
+
+  String get clientId => _clientId;
+  String get message => _message;
+
+  ChatPayload(this._clientId, this._message);
+}
+

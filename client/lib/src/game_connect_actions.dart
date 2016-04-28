@@ -16,5 +16,5 @@ class GameConnectClientActions {
   Action<String> setActiveGame = new Action<String>();
   Action<RegisterClientPayload> registerClient = new Action<RegisterClientPayload>();
   Action<String> disconnectPlayer = new Action<String>();
-
+  Action<ChatPayload> onChatMessageReceived = new Action<ChatPayload>();
 }

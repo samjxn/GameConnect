@@ -11,12 +11,14 @@ part 'stores/grouping_screen_store.dart';
 part 'stores/game_connect_client_store.dart';
 part 'stores/level_select_store.dart';
 part 'stores/game_display_store.dart';
+part 'stores/chat_demo_store.dart';
 
 class GameConnectClientStores {
   GroupingScreenStore groupingScreenStore;
   GameConnectClientStore gameConnectClientStore;
   LevelSelectStore levelSelectStore;
   GameDisplayStore gameDisplayStore;
+  ChatDemoStore chatDemoStore;
 
   GameConnectClientStores(
       GameConnectClientActions actions, GameConnectClientApi api) {
@@ -24,5 +26,6 @@ class GameConnectClientStores {
     gameConnectClientStore = new GameConnectClientStore(actions, api);
     levelSelectStore = new LevelSelectStore();
     gameDisplayStore = new GameDisplayStore(actions, api);
+    chatDemoStore = new ChatDemoStore(actions, this);
   }
 }

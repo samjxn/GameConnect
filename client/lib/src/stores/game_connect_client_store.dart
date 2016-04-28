@@ -31,12 +31,16 @@ class GameConnectClientStore extends flux.Store {
   }
 
   _onUserQuit(_){
-    _groupMembers = {};
-    _onSetComponent(Screens.GROUPING_SCREEN);
+    window.location.reload();
   }
 
   _deRegisterClient(String clientId) {
     _groupMembers.remove(clientId);
+
+    if(currentComponent != Screens.GROUPING_SCREEN && _groupMembers.isEmpty) {
+      _onUserQuit(null);
+    }
+
     trigger();
   }
 }

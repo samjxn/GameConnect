@@ -104,7 +104,7 @@ class LightBikeGame {
         _actions.onQuit();
       }
     } else if (_gameState == _drawGameUpdate) {
-      _idBikeMap[snapshot.senderId]._setNextDirection(snapshot);
+      _idBikeMap[snapshot.senderId]._respondToControllerInput(snapshot);
     }
   }
 
@@ -160,10 +160,10 @@ class LightBikeGame {
     _renderer.clear();
 
     _ctx.fillStyle = "DeepPink";
-    _ctx.font = "100px Monospace";
+    _ctx.font = "100px Orbitron";
     _ctx.textAlign = "center";
     _ctx.fillText("LIGHT BIKE", _canvas.width ~/ 2, _canvas.height ~/ 2);
-    _ctx.font = "25px Monospace";
+    _ctx.font = "25px Orbitron";
 
     _ctx.fillText("Press A to start, Press B to quit.", _canvas.width ~/ 2,
         _canvas.height ~/ 2 + 200);
@@ -175,21 +175,27 @@ class LightBikeGame {
     _renderer.clear();
 
     _ctx.fillStyle = "DeepPink";
-    _ctx.font = "100px Monospace";
+    _ctx.font = "100px Orbitron";
     _ctx.textAlign = "center";
     _ctx.fillText("Game Over", _canvas.width ~/ 2, _canvas.height ~/ 2);
 
-    _ctx.font = "25px Monospace";
+    _ctx.font = "25px Orbitron";
 
     var verticalOffset = 200;
     _bikes.forEach((Bike s) {
-      var scoreText = "${s.name}:  ${s.getScore()}";
-      _ctx.fillText(
-          scoreText, _canvas.width ~/ 2, _canvas.height ~/ 2 + verticalOffset);
+
+
+
+      _ctx.textAlign = "right";
+      _ctx.fillText(s.name +":", _canvas.width ~/2, _canvas.height ~/2 + verticalOffset);
+      _ctx.textAlign = "left";
+      _ctx.fillText("     ${s.getScore()}", _canvas.width ~/2, _canvas.height ~/2 + verticalOffset);
+
       verticalOffset += 50;
     });
 
-    _ctx.fillStyle = "black";
+    _ctx.textAlign = "center";
+    _ctx.fillStyle = "DeepPink";
     _ctx.fillText("Press A to restart, Press B to quit.", _canvas.width ~/ 2,
         _canvas.height ~/ 2 + 400);
   }
@@ -205,35 +211,33 @@ class LightBikeGame {
     //move snakes
     _bikes.where((snake) => !snake.isDead).forEach((snake) {
       snake.move();
+      if (snake.isBoosting) {
+        snake.move();
+      }
       if (snake.isDead) {
         _playersInGame--;
       }
     });
 
-    _renderer.drawBoard(_board);
+    _renderer.drawLowerBoard(_board);
+    _renderer.drawUpperBoard(_board);
     drawLabels();
   }
 
   drawLabels() {
-    var i = 0;
-
-    var cellOffset = 3;
-
     var labelOffsets = [
-      new Point(0, cellOffset),
-      new Point(-cellOffset, 0),
-      new Point(0, -cellOffset),
-      new Point(cellOffset, 0)
+      new Point(0, 5),
+      new Point(-5, 0),
+      new Point(0, -5),
+      new Point(5, 0)
     ];
+    var justification = ["left", "right", "right", "left"];
 
-    var justification = ["right", "right", "left", "left"];
-    _bikes
-        .where((Bike s) => !s.isDead && s._dir == null)
-        .toList()
-        .forEach((Bike s) {
-      _renderer.drawLabel(
-          s.name, s.head + labelOffsets[i], s._color, justification[i]);
-      i++;
+    _bikes.forEach((Bike b) {
+      if (b._dir == null) {
+        _renderer.drawLabel(b.name, b.head + labelOffsets[b._id], "DeepPink",
+            justification[b._id]);
+      }
     });
   }
 }
@@ -269,6 +273,15 @@ class _LBCellRenderer {
     _context.fillRect(x, y, cellSize, cellSize);
   }
 
+  void drawUpperLevelCell(Point coords, String color) {
+    _context.fillStyle = color;
+
+    final int x = coords.x * cellSize;
+    final int y = coords.y * cellSize;
+
+    _context.fillRect(x + 2, y + 2, cellSize - 2, cellSize - 2);
+  }
+
   void drawFood(Point coords, String color) {
     _context.fillStyle = color;
     _context.strokeStyle = "white";
@@ -284,23 +297,33 @@ class _LBCellRenderer {
     _context.fill();
   }
 
-  drawBoard(LBGameBoard board) {
-    board._lowerCollisionMap.forEach((Point coord, dynamic object) {
-      if (object is Bike) {
-        Bike bike = object;
-        drawCell(coord, bike._color);
+  drawLowerBoard(LBGameBoard board) {
+    _drawBoard(board._lowerCollisionMap, drawCell);
+  }
+
+  drawUpperBoard(LBGameBoard board) {
+    _drawBoard(board._upperCollisionMap, drawUpperLevelCell);
+  }
+
+  _drawBoard(Map<Point, Bike> collisionMap, drawFunction) {
+    collisionMap.forEach((Point coord, Bike bike) {
+      if (coord == bike.head) {
+        var color = bike.boostCoolOff == 0 ? "DeepPink" : "white";
+        drawFunction(coord, color);
+      } else if (coord == bike.trail[1]) {
+        var color = bike.jumpCoolOff == 0 ? "DeepPink" : "white";
+        drawFunction(coord, color);
+      } else {
+        drawFunction(coord, bike._color);
       }
     });
   }
 
   drawLabel(String label, Point point, String color, String alignment) {
-    _context.font = "25px Monospace";
-    _context.strokeStyle = 'white';
-    _context.lineWidth = 5;
+    _context.font = "25px Orbitron";
     _context.fillStyle = color;
     _context.textAlign = alignment;
 
-    _context.strokeText(label, point.x * cellSize, point.y * cellSize);
     _context.fillText(label, point.x * cellSize, point.y * cellSize);
   }
 }
@@ -322,6 +345,7 @@ class LBGameBoard {
 
   reset() {
     _lowerCollisionMap.clear();
+    _upperCollisionMap.clear();
   }
 }
 
@@ -329,8 +353,10 @@ class Bike {
   static int _count;
 
   static const int START_LENGTH = 2;
-  static const int JUMP_COOL_DOWN = 250;
-  static const int MAX_JUMP_TIME = 10;
+  static const int JUMP_COOL_DOWN = 150;
+  static const int BOOST_COOL_DOWN = 250;
+  static const int DEFAULT_JUMP_TIME = 30;
+  static const int DEFAULT_BOOST_TIME = 50;
 
   static const Point LEFT = const Point(-1, 0);
   static const Point RIGHT = const Point(1, 0);
@@ -341,6 +367,7 @@ class Bike {
   Point _nextDir;
 
   // coordinates of the body segments
+  Timer _canTurnTimer;
   List<Point> trail;
   bool hasMoved;
   bool isDead;
@@ -351,9 +378,13 @@ class Bike {
   String name;
   int _id;
 
-  bool jumping;
+  bool isJumping;
+  bool isBoosting;
+  bool _canTurn;
   int jumpCoolOff;
+  int boostCoolOff;
   int jumpTime;
+  int boostTime;
 
   Bike(LBGameBoard this._board, this.name) {
     _id = _count;
@@ -361,9 +392,14 @@ class Bike {
     trail = [];
     hasMoved = false;
     isDead = false;
-    jumping = false;
+    isJumping = false;
+    isBoosting = false;
+    _canTurn = true;
     jumpCoolOff = 0;
-    jumpTime = MAX_JUMP_TIME;
+    boostCoolOff = 0;
+    jumpTime = DEFAULT_JUMP_TIME;
+
+    boostTime = DEFAULT_BOOST_TIME;
 
     _dir = null;
     trail = _resetTrail();
@@ -433,53 +469,72 @@ class Bike {
       return;
     }
 
-    //                     LEFT       RIGHT
-    // UP      ( 0, -1), (-1,  0),   ( 1,  0)
-    // RIGHT   ( 1,  0), ( 0, -1),   ( 0,  1)
-    // DOWN    ( 0,  1), (-1,  0),   ( 1,  0)
-    // LEFT    (-1,  0), ( 0,  1),   ( 0, -1)
+    _nextDir = new Point(_dir.y, -1 * _dir.x);
   }
 
-  void _setNextDirection(ControllerSnapshot snapshot) {
+  void turnRight() {
+    if (_dir == null) {
+      return;
+    }
+
+    _nextDir = new Point(-1 * _dir.y, _dir.x);
+  }
+
+  void _respondToControllerInput(ControllerSnapshot snapshot) {
     if (snapshot == null) {
       return;
     }
 
-    var dpadDir = snapshot?.dpadInput;
+    _respondToTilt(int tiltValue) {
+      tiltValue ??= 0;
 
-    if (dpadDir == "1" && _dir != DOWN) {
-      _nextDir = UP;
+      if (tiltValue < -3) {
+        if (_canTurn) {
+          _triggerTurnTimer();
+          turnLeft();
+        }
+        _canTurn = false;
+      } else if (tiltValue > 3) {
+        if (_canTurn) {
+          _triggerTurnTimer();
+          turnRight();
+        }
+      } else {
+        _canTurnTimer?.cancel();
+        _canTurnTimer = null;
+        _canTurn = true;
+      }
     }
 
-    if (dpadDir == "2" && _dir != LEFT) {
-      _nextDir = RIGHT;
-    }
+    var dpadDir = snapshot.dpadInput;
 
-    if (dpadDir == "3" && _dir != UP) {
-      _nextDir = DOWN;
+    if (dpadDir == "2") {
+      turnRight();
     }
-
-    if (dpadDir == "4" && _dir != RIGHT) {
-      _nextDir = LEFT;
+    if (dpadDir == "4") {
+      turnLeft();
     }
 
     if (_dir != null &&
-        !this.jumping &&
-        jumpCoolOff == 0 &&
-        snapshot.aPressed) {
-      jumping = true;
-    } else if (_dir != null && this.jumping && !snapshot.aPressed) {
-      jumping = false;
-       _resetJumpCoolOff();
+        snapshot.aPressed &&
+        !this.isJumping &&
+        jumpCoolOff == 0) {
+      isJumping = true;
+    }
+    if (_dir != null &&
+        snapshot.bPressed &&
+        !this.isBoosting &&
+        boostCoolOff == 0) {
+      isBoosting = true;
     }
 
-    /*
-    if (snapshot.tilt < -1 * THRESHOLD) {
-      _turnLeft();
-    } else if (snapshot.tilt > THRESHOLD) {
-      _turnRight();
-    }
-     */
+    _respondToTilt(snapshot.tilt);
+  }
+
+  _triggerTurnTimer() {
+    _canTurn = false;
+    _canTurnTimer =
+        new Timer(const Duration(milliseconds: 500), (() => _canTurn = true));
   }
 
   void _grow() {
@@ -497,25 +552,42 @@ class Bike {
 
     if (_deathImpending()) {
       this.kill();
+      return;
     }
 
     _grow();
     hasMoved = true;
 
-    if (jumping) {
+    if (isJumping) {
       jumpTime--;
       if (jumpTime <= 0) {
-        jumping = false;
+        isJumping = false;
         _resetJumpCoolOff();
       }
     } else if (jumpCoolOff > 0) {
       jumpCoolOff--;
     }
+    if (isBoosting) {
+      boostTime--;
+
+      if (_deathImpending()) {
+        this.kill();
+        return;
+      }
+      _grow();
+
+      if (boostTime <= 0) {
+        isBoosting = false;
+        _resetBoostCoolOff();
+      }
+    } else if (boostCoolOff > 0) {
+      boostCoolOff--;
+    }
   }
 
   kill() {
     this.isDead = true;
-    trail.forEach((bodyPoint){
+    trail.forEach((bodyPoint) {
       _board._lowerCollisionMap.remove(bodyPoint);
       _board._upperCollisionMap.remove(bodyPoint);
     });
@@ -524,7 +596,7 @@ class Bike {
   _deathImpending() {
     var nextPoint = head + _dir;
 
-    var nextCellOccupant =  _getReleventCollisionMap()[nextPoint];
+    var nextCellOccupant = _getReleventCollisionMap()[nextPoint];
 
     if (nextCellOccupant is Bike) {
       return true;
@@ -532,8 +604,8 @@ class Bike {
 
     if (nextPoint.x < 1 ||
         nextPoint.y < 1 ||
-        nextPoint.x >= _board._rightEdgeX ||
-        nextPoint.y >= _board._bottomEdgeY) {
+        nextPoint.x >= _board._rightEdgeX - 1 ||
+        nextPoint.y >= _board._bottomEdgeY - 1) {
       return true;
     }
 
@@ -544,17 +616,21 @@ class Bike {
     return trail.length - START_LENGTH;
   }
 
-  Map<Point, Bike>_getReleventCollisionMap() {
-    if (this.jumping) {
+  Map<Point, Bike> _getReleventCollisionMap() {
+    if (this.isJumping) {
       return _board._upperCollisionMap;
-    }
-    else {
+    } else {
       return _board._lowerCollisionMap;
     }
   }
 
-  _resetJumpCoolOff(){
-    this.jumpCoolOff = JUMP_COOL_DOWN * (1 - (this.jumpTime ~/ MAX_JUMP_TIME));
-    this.jumpTime = MAX_JUMP_TIME;
+  _resetJumpCoolOff() {
+    this.jumpCoolOff = JUMP_COOL_DOWN;
+    this.jumpTime = DEFAULT_JUMP_TIME;
+  }
+
+  _resetBoostCoolOff() {
+    this.boostCoolOff = BOOST_COOL_DOWN;
+    this.boostTime = DEFAULT_JUMP_TIME;
   }
 }

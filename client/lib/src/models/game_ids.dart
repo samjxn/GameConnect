@@ -6,6 +6,7 @@ class GameIds {
   static const SNAKE = "snake";
   static const LITE_BIKE = "light-bike";
   static const CHAT = "chat";
+  static const COINS = "coin warrior";
 
 
 }

@@ -69,3 +69,13 @@ class SoftDisconnectStrategy extends MessageReceivedStrategy {
     _payloads[_actions.disconnectPlayer] = jsonData['content']['clientId'];
   }
 }
+
+class ChatMessageReceivedStrategy extends MessageReceivedStrategy {
+  ChatMessageReceivedStrategy(GameConnectClientActions _actions, Map jsonData) {
+    String clientId = jsonData['clientId'];
+    String message = jsonData['content']['message'];
+
+    _actionsToComplete.add(_actions.onChatMessageReceived);
+    _payloads[_actions.onChatMessageReceived] = new ChatPayload(clientId, message);
+  }
+}

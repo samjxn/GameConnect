@@ -9,5 +9,6 @@ class MessageTypes {
   static const String CLIENT_DISCONNECT = "disconnect";
   static const String CONTROLLER_SNAPSHOT = "controller-snapshot";
   static const String SOFT_DISCONNECT = "soft-disconnect";
+  static const String CHAT_MESSAGE = "chat-msg";
 
 }

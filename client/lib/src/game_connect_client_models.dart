@@ -17,3 +17,4 @@ part 'models/game_interface.dart';
 part 'models/message_types.dart';
 part 'models/payloads.dart';
 part 'models/player.dart';
+part 'models/chat_message.dart';
