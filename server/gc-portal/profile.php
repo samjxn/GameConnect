@@ -8,7 +8,7 @@ if(!isset($_SESSION['fbid'])){
 }
 if($_POST['update'] == 1){
     require 'include/mysql.inc';
-    $query = "UPDATE `db309grp16`.`users` SET `fbid` = '".$_SESSION['fbid']."', `fbpic` = '".$_SESSION['fbpic']."', `name` = '".$_SESSION['full_name']."' WHERE `device_uuid` LIKE '%\"" . $_POST['uuid'] . "\"%';";
+    $query = "UPDATE `db309grp16`.`users` SET `fbid` = '".$_SESSION['fbid']."', `fbpic` = '".$_SESSION['fbpic']."', `name` = '".$_SESSION['full_name']."' WHERE `device_uuid` LIKE '%\"" . $_POST['uuid'] . "%';";
     $result = mysql_query($query) or die('Invalid query: ' . mysql_error() . '<br>' . $query);
     mysql_close($mysql_link);
     $onload = "swal('Updated!', 'Your profile has been successfully updated!', 'success');";

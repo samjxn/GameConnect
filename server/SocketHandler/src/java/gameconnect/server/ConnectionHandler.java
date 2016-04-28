@@ -15,8 +15,10 @@ import javax.websocket.server.ServerEndpoint;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gameconnect.server.context.ChatContext;
+import gameconnect.server.context.CoinsContext;
 import gameconnect.server.context.DebugAnyContext;
 import gameconnect.server.context.DebugContext;
+import gameconnect.server.context.LightBikeContext;
 import gameconnect.server.context.SnakeContext;
 import gameconnect.server.database.DatabaseSupport;
 import gameconnect.server.database.Score;
@@ -24,8 +26,6 @@ import gameconnect.server.database.User;
 import gameconnect.server.io.MessageTypes.GroupingCodeMessage;
 import gameconnect.server.panel.Panel;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -295,6 +295,29 @@ public class ConnectionHandler {
                             response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
                         }
                         break;
+                    case "light-bike":
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"light-bike\" } }");
+                            c.getGroup().context = new LightBikeContext(c.getGroup());
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
+                    case "coin warrior":
+                    case "coin-warrior":
+                        c = getClient(session);
+                        if (c != null && c.getGroup() != null) {
+                            c.getGroup().sendToAll("{ \"groupId\": " + c.getGroup().getGroupID() + ", \"sourceType\":\"backend\", \"messageType\":\"context-selected\", \"content\": { \"contextName\":\"coin-warrior\" } }");
+                            c.getGroup().context = new CoinsContext(c.getGroup());
+                            sent = true;
+                        } else {
+                            sender = new ToSessionSender(session);
+                            response = new OutgoingMessage(null, SourceType.BACKEND, MessageType.ERROR, new ErrorMessageContent("Null pointer error!"));
+                        }
+                        break;
                     case "chat":
                         c = getClient(session);
                         if (c != null && c.getGroup() != null) {
@@ -339,7 +362,7 @@ public class ConnectionHandler {
                             try {
                                 //don't send to all
                                 c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"context-selected\",\"content\": { \"contextName\":\"settings\" } }");
-                                c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"settings\",\"content\": { \"paircode\":\"" + c.user.getUUIDs()[0] + "\" } }");//,\"pair-code-uuid\":\""+c.user.getUUIDs()[0]+"\"
+                                c.sendText("{\"groupId\":" + c.getGroup().getGroupID() + ",\"sourceType\":\"backend\",\"messageType\":\"settings\",\"content\": { \"paircode\":\"" + c.user.getUUIDs()[0].substring(0, 5) + "\" } }");//,\"pair-code-uuid\":\""+c.user.getUUIDs()[0]+"\"
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
@@ -378,7 +401,12 @@ public class ConnectionHandler {
             }
 
             if (sendGameList) {
-                session.getAsyncRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": [\"debug\", \"snake\",  \"coins\", \"chat\", \"settings\"] } }");
+                String add = "";
+                c = getClient(session);
+                if(c != null && c.user != null && c.user.getRole().equals("admin")){
+                    add = "\"debug\", ";
+                }
+                session.getAsyncRemote().sendText("{ \"sourceType\":\"backend\", \"messageType\": \"context-list\", \"content\": { \"games\": ["+add+"\"snake\", \"light-bike\", \"coin warrior\", \"chat\", \"settings\"] } }");
             }
 
         } catch (IOException ex) {

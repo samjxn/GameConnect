@@ -1,5 +1,7 @@
-<?php
-$page['title'] = "Snake Highscores";
+<?php 
+if(!isset($gameID)){
+    die('gameID not set!');
+}
 ?>
 <html>
     <head>
@@ -13,7 +15,7 @@ $page['title'] = "Snake Highscores";
         $query = "SELECT hi.uid, hi.scoreid, hi.gameid, u.name, u.fbpic, hi.score 
                     FROM db309grp16.highscores AS hi
                     INNER JOIN `db309grp16`.`users` AS u ON hi.uid = u.uid
-                    WHERE hi.gameid = 1
+                    WHERE hi.gameid = {$gameID}
                     ORDER BY hi.score DESC 
                     LIMIT 100";
         $result = mysql_query($query) or die('Invalid query: ' . mysql_error());
